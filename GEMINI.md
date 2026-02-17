@@ -92,7 +92,8 @@ The application uses a set of core interfaces for YouTube Music entities, define
 - **Fixed Search Input & Trigger**: Resolved an issue where typing was not possible and implemented actual search triggering on Enter.
 - **Manual Screen Refresh**: Added `Ctrl+L` shortcut to manually clear and refresh the terminal UI. Uses `ansi-escapes` for robust clearing.
 - **Security Enhancements**: Implemented URL sanitization for audio streaming to prevent shell injection vulnerabilities.
-- **Improved Code Quality**: Resolved linting errors, removed deprecated code, and modernized React imports using `react-jsx` transform.
+- **Improved Code Quality**: Resolved linting errors, removed deprecated code, and modernized React imports using `react-jsx` transform. Configured `eslint-plugin-react-hooks` for better stability.
 - **Optimized Rendering**: Centralized side effects and memoized context values to prevent terminal flooding and redundant re-renders.
-- **Unified Input Handling**: Standardized search and selection keybindings to resolve Enter key conflicts.
+- **Unified Input Handling**: Standardized search and selection keybindings to resolve Enter key conflicts and fix the "one-letter search" bug.
+- **Responsive UI**: Implemented `useTerminalSize` to scale progress bars and truncate text based on terminal width.
 - **Real Audio Integration**: Connected the TUI to the `PlayerService` for actual audio playback using `play-sound`.

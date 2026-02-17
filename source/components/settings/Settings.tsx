@@ -6,28 +6,28 @@ import {getConfigService} from '../../services/config/config.service.ts';
 import {useKeyBinding} from '../../hooks/useKeyboard.ts';
 import {KEYBINDINGS} from '../../utils/constants.ts';
 
+const QUALITIES: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
+
 export default function Settings() {
 	const {theme} = useTheme();
 	const config = getConfigService();
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [quality, setQuality] = useState(config.get('streamQuality') || 'high');
 
-	const qualities: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
-
 	const navigateUp = useCallback(() => {
 		setSelectedIndex(prev => Math.max(0, prev - 1));
-	}, []);
+	}, [setSelectedIndex]);
 
 	const navigateDown = useCallback(() => {
 		setSelectedIndex(prev => Math.min(1, prev + 1)); // Only 2 settings for now
-	}, []);
+	}, [setSelectedIndex]);
 
 	const toggleQuality = useCallback(() => {
-		const currentIndex = qualities.indexOf(quality);
-		const nextQuality = qualities[(currentIndex + 1) % qualities.length]!;
+		const currentIndex = QUALITIES.indexOf(quality);
+		const nextQuality = QUALITIES[(currentIndex + 1) % QUALITIES.length]!;
 		setQuality(nextQuality);
 		config.set('streamQuality', nextQuality);
-	}, [quality, config, qualities]);
+	}, [quality, config]);
 
 	useKeyBinding(KEYBINDINGS.UP, navigateUp);
 	useKeyBinding(KEYBINDINGS.DOWN, navigateDown);

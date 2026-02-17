@@ -26,10 +26,6 @@ export default function SearchResults({
 	const {play} = usePlayer();
 	const {columns} = useTerminalSize();
 
-	if (results.length === 0) {
-		return null;
-	}
-
 	// Navigate results with arrow keys
 	const navigateUp = useCallback(() => {
 		if (!isActive) return;
@@ -67,6 +63,10 @@ export default function SearchResults({
 		if (!isActive) return;
 		dispatch({category: 'SET_SELECTED_RESULT', index: selectedIndex});
 	}, [selectedIndex, dispatch, isActive]);
+
+	if (results.length === 0) {
+		return null;
+	}
 
 	// Calculate responsive truncation
 	const maxTitleWidth = Math.max(20, columns - 25);

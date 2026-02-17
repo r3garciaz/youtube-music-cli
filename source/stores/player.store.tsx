@@ -199,17 +199,19 @@ function PlayerManager() {
 		const config = getConfigService();
 		dispatch({category: 'SET_VOLUME', volume: config.get('volume')});
 
+		const currentInterval = progressIntervalRef.current;
 		return () => {
-			if (progressIntervalRef.current) {
-				clearInterval(progressIntervalRef.current);
+			if (currentInterval) {
+				clearInterval(currentInterval);
 			}
 			playerService.stop();
 		};
-	}, []);
+	}, [dispatch, playerService]);
 
 	// Handle track changes
 	useEffect(() => {
-		if (!state.currentTrack) {
+		const track = state.currentTrack;
+		if (!track) {
 			return;
 		}
 
@@ -217,9 +219,7 @@ function PlayerManager() {
 			dispatch({category: 'SET_LOADING', loading: true});
 
 			try {
-				const url = await musicService.getStreamUrl(
-					state.currentTrack!.videoId,
-				);
+				const url = await musicService.getStreamUrl(track.videoId);
 
 				if (!url) {
 					throw new Error('Failed to get stream URL');
@@ -238,7 +238,7 @@ function PlayerManager() {
 		};
 
 		void loadAndPlayTrack();
-	}, [state.currentTrack?.videoId]);
+	}, [state.currentTrack, dispatch, musicService, playerService]);
 
 	// Handle progress tracking
 	useEffect(() => {
@@ -253,14 +253,14 @@ function PlayerManager() {
 		}
 
 		return undefined;
-	}, [state.isPlaying, state.currentTrack?.videoId, dispatch]);
+	}, [state.isPlaying, state.currentTrack, dispatch]);
 
 	// Handle play/pause state
 	useEffect(() => {
 		if (!state.isPlaying) {
 			playerService.pause();
 		}
-	}, [state.isPlaying]);
+	}, [state.isPlaying, playerService]);
 
 	// Handle volume changes
 	useEffect(() => {
@@ -277,7 +277,7 @@ function PlayerManager() {
 				next();
 			}
 		}
-	}, [state.progress, state.duration, state.repeat, next]);
+	}, [state.progress, state.duration, state.repeat, next, dispatch]);
 
 	return null;
 }

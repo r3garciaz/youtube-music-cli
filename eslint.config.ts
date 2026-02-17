@@ -1,4 +1,5 @@
 import pluginReact from 'eslint-plugin-react';
+import hooksPlugin from 'eslint-plugin-react-hooks';
 import {defineConfig} from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
@@ -27,11 +28,15 @@ export default defineConfig([
 	{
 		files: ['**/*.jsx', '**/*.tsx'],
 		...pluginReact.configs.flat['recommended'],
+		plugins: {
+			'react-hooks': hooksPlugin as any,
+		},
 		settings: {
 			react: {version: 'detect'},
 			jsxRuntime: 'automatic',
 		},
 		rules: {
+			...hooksPlugin.configs.recommended.rules,
 			'react/react-in-jsx-scope': 'off',
 			'react/jsx-uses-react': 'off',
 			'@typescript-eslint/no-unused-vars': [

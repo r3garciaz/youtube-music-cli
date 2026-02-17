@@ -11,17 +11,10 @@ import Suggestions from '../player/Suggestions.tsx';
 import Settings from '../settings/Settings.tsx';
 import {KEYBINDINGS, VIEW} from '../../utils/constants.ts';
 import {Box} from 'ink';
-import ansiEscapes from 'ansi-escapes';
-import {useEffect} from 'react';
 
 export default function MainLayout() {
 	const {theme} = useTheme();
 	const {state: navState, dispatch} = useNavigation();
-
-	// Clear terminal when view changes to prevent flooding
-	useEffect(() => {
-		process.stdout.write(ansiEscapes.clearTerminal);
-	}, [navState.currentView]);
 
 	// Navigate to different views
 	const goToSearch = useCallback(() => {

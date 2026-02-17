@@ -113,13 +113,6 @@ export default function SearchResults({
 					</Box>
 				);
 			})}
-
-			{/* Instructions */}
-			<Box marginTop={1}>
-				<Text color={theme.colors.dim}>
-					Arrows to navigate, Enter to play song, Esc to go back
-				</Text>
-			</Box>
 		</Box>
 	);
 }

@@ -36,20 +36,20 @@ const cli = meow(
 		flags: {
 			theme: {
 				type: 'string',
-				alias: 't',
+				shortFlag: 't',
 			},
 			volume: {
 				type: 'number',
-				alias: 'v',
+				shortFlag: 'v',
 			},
 			shuffle: {
 				type: 'boolean',
-				alias: 's',
+				shortFlag: 's',
 				default: false,
 			},
 			repeat: {
 				type: 'string',
-				alias: 'r',
+				shortFlag: 'r',
 			},
 			headless: {
 				type: 'boolean',
@@ -57,7 +57,7 @@ const cli = meow(
 			},
 			help: {
 				type: 'boolean',
-				alias: 'h',
+				shortFlag: 'h',
 				default: false,
 			},
 		},

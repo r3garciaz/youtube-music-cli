@@ -31,6 +31,7 @@ export default function SearchLayout() {
 
 			if (response) {
 				setResults(response.results);
+				dispatch({category: 'SET_SELECTED_RESULT', index: 0});
 				dispatch({category: 'SET_HAS_SEARCHED', hasSearched: true});
 				setIsTyping(false); // Move focus to results after search
 			}
@@ -51,17 +52,20 @@ export default function SearchLayout() {
 	useKeyBinding(KEYBINDINGS.INCREASE_RESULTS, increaseLimit);
 	useKeyBinding(KEYBINDINGS.DECREASE_RESULTS, decreaseLimit);
 
-	// Initial search if query is in state
+	// Initial search if query is in state (usually from CLI flags)
 	useEffect(() => {
-		if (isTyping && navState.searchQuery && !navState.hasSearched) {
+		if (navState.searchQuery && !navState.hasSearched) {
 			void performSearch(navState.searchQuery);
 		}
-	}, [isTyping, navState.searchQuery, navState.hasSearched, performSearch]);
+		// We only want this to run once on mount or when searchQuery changes initially
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	// Handle going back
 	const goBack = useCallback(() => {
 		if (!isTyping) {
 			setIsTyping(true); // Back to typing if in results
+			dispatch({category: 'SET_HAS_SEARCHED', hasSearched: false});
 		} else {
 			dispatch({category: 'GO_BACK'});
 		}
@@ -74,6 +78,7 @@ export default function SearchLayout() {
 		return () => {
 			setResults([]);
 			dispatch({category: 'SET_HAS_SEARCHED', hasSearched: false});
+			dispatch({category: 'SET_SEARCH_QUERY', query: ''});
 		};
 	}, [dispatch]);
 
@@ -99,7 +104,6 @@ export default function SearchLayout() {
 			<SearchBar
 				isActive={isTyping && !isSearching}
 				onInput={input => {
-					dispatch({category: 'SET_SEARCH_QUERY', query: input});
 					void performSearch(input);
 				}}
 			/>

@@ -8,6 +8,14 @@ import type {
 	SearchResponse,
 	SearchResult,
 } from '../../types/youtube-music.types.ts';
+import type {
+	VideoSearchResult,
+	PlaylistSearchResult,
+	ChannelSearchResult,
+	SearchResponse as YoutubeiSearchResponse,
+	VideoInfo,
+	RelatedContent,
+} from '../../types/youtubei.types.ts';
 import {Innertube} from 'youtubei.js';
 
 // Initialize YouTube client
@@ -30,11 +38,13 @@ class MusicService {
 
 		try {
 			const yt = await getClient();
-			const search = await yt.search(query);
+			const search = (await yt.search(
+				query,
+			)) as unknown as YoutubeiSearchResponse;
 
 			// Process search results based on type
 			if (searchType === 'all' || searchType === 'songs') {
-				const videos = search.videos as any[];
+				const videos = search.videos as VideoSearchResult[] | undefined;
 				if (videos) {
 					for (const video of videos) {
 						if (video.type === 'Video' || video.id) {
@@ -42,14 +52,23 @@ class MusicService {
 								type: 'song',
 								data: {
 									videoId: video.id || video.video_id || '',
-									title: video.title?.text || video.title || 'Unknown',
+									title:
+										(typeof video.title === 'string'
+											? video.title
+											: video.title?.text) || 'Unknown',
 									artists: [
 										{
 											artistId: video.channel_id || video.channel?.id || '',
-											name: video.author?.name || video.author || 'Unknown',
+											name:
+												(typeof video.author === 'string'
+													? video.author
+													: video.author?.name) || 'Unknown',
 										},
 									],
-									duration: video.duration?.seconds || video.duration || 0,
+									duration:
+										(typeof video.duration === 'number'
+											? video.duration
+											: video.duration?.seconds) || 0,
 								},
 							});
 						}
@@ -58,7 +77,9 @@ class MusicService {
 			}
 
 			if (searchType === 'all' || searchType === 'playlists') {
-				const playlists = search.playlists as any[];
+				const playlists = search.playlists as
+					| PlaylistSearchResult[]
+					| undefined;
 				if (playlists) {
 					for (const playlist of playlists) {
 						results.push({
@@ -66,7 +87,9 @@ class MusicService {
 							data: {
 								playlistId: playlist.id || '',
 								name:
-									playlist.title?.text || playlist.title || 'Unknown Playlist',
+									(typeof playlist.title === 'string'
+										? playlist.title
+										: playlist.title?.text) || 'Unknown Playlist',
 								tracks: [],
 							},
 						});
@@ -75,14 +98,17 @@ class MusicService {
 			}
 
 			if (searchType === 'all' || searchType === 'artists') {
-				const channels = search.channels as any[];
+				const channels = search.channels as ChannelSearchResult[] | undefined;
 				if (channels) {
 					for (const channel of channels) {
 						results.push({
 							type: 'artist',
 							data: {
 								artistId: channel.id || channel.channelId || '',
-								name: channel.author?.name || channel.name || 'Unknown Artist',
+								name:
+									(typeof channel.author === 'string'
+										? channel.author
+										: channel.author?.name) || 'Unknown Artist',
 							},
 						});
 					}
@@ -133,11 +159,14 @@ class MusicService {
 	async getSuggestions(trackId: string): Promise<Track[]> {
 		try {
 			const yt = await getClient();
-			const video = (await yt.getInfo(trackId)) as any;
+			const video = (await yt.getInfo(trackId)) as unknown as VideoInfo;
 			const suggestions = video.related?.contents || [];
-			return suggestions.slice(0, 10).map((item: any) => ({
+			return suggestions.slice(0, 10).map((item: RelatedContent) => ({
 				videoId: item.id || '',
-				title: item.title?.text || 'Unknown',
+				title:
+					typeof item.title === 'string'
+						? item.title
+						: item.title?.text || 'Unknown',
 				artists: [],
 			}));
 		} catch (error) {
@@ -149,10 +178,10 @@ class MusicService {
 	async getStreamUrl(videoId: string): Promise<string> {
 		try {
 			const yt = await getClient();
-			const video = (await yt.getInfo(videoId)) as any;
+			const video = (await yt.getInfo(videoId)) as unknown as VideoInfo;
 
 			// Get the download URL for the video
-			const streamData = video.chooseFormat({
+			const streamData = video.chooseFormat?.({
 				type: 'audio',
 				quality: 'best',
 			});
@@ -163,7 +192,15 @@ class MusicService {
 
 			throw new Error('No stream URL found');
 		} catch (error) {
-			console.error('Failed to get stream URL:', error);
+			// Log the error for debugging, but don't fail - use Invidious fallback
+			if (error instanceof Error && error.message.includes('ParsingError')) {
+				console.warn(
+					'YouTubei parser error, falling back to Invidious:',
+					error.message,
+				);
+			} else {
+				console.error('Failed to get stream URL:', error);
+			}
 
 			// Fallback to Invidious API
 			return await this.getInvidiousStreamUrl(videoId);

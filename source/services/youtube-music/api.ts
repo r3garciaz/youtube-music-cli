@@ -9,7 +9,7 @@ import type {
 	SearchResult,
 } from '../../types/youtube-music.types.ts';
 import * as YTMusic from 'node-youtube-music';
-import {videoInfo, getFormats, type VideoFormat} from 'youtube-ext';
+import {videoInfo, getFormats, search as searchExt, type VideoFormat} from 'youtube-ext';
 import {getConfigService} from '../config/config.service.ts';
 
 class MusicService {
@@ -20,43 +20,100 @@ class MusicService {
 		const searchType = options.type || 'all';
 		const results: SearchResult[] = [];
 
-		if (searchType === 'all' || searchType === 'songs') {
-			const songs = await YTMusic.searchMusics(query);
-			for (const song of songs) {
-				results.push({
-					type: 'song',
-					data: this.mapMusicVideoToTrack(song),
-				});
-			}
-		}
+		try {
+			// Use youtube-ext search as it is more reliable (standard YouTube search)
+			// and less likely to 404 than internal Music API endpoints
+			const extResults = await searchExt(query);
 
-		if (searchType === 'all' || searchType === 'albums') {
-			const albums = await YTMusic.searchAlbums(query);
-			for (const album of albums) {
-				results.push({
-					type: 'album',
-					data: this.mapAlbumPreviewToAlbum(album),
-				});
+			if (searchType === 'all' || searchType === 'songs') {
+				for (const video of extResults.videos) {
+					results.push({
+						type: 'song',
+						data: {
+							videoId: video.id,
+							title: video.title,
+							artists: [
+								{
+									artistId: video.channel.id,
+									name: video.channel.name,
+								},
+							],
+							duration: this.parseDuration(video.duration.text),
+						},
+					});
+				}
 			}
-		}
 
-		if (searchType === 'all' || searchType === 'artists') {
-			const artists = await YTMusic.searchArtists(query);
-			for (const artist of artists) {
-				results.push({
-					type: 'artist',
-					data: this.mapArtistPreviewToArtist(artist),
-				});
+			if (searchType === 'all' || searchType === 'playlists') {
+				for (const playlist of extResults.playlists) {
+					results.push({
+						type: 'playlist',
+						data: {
+							playlistId: playlist.id,
+							name: playlist.name,
+							tracks: [],
+						},
+					});
+				}
 			}
-		}
 
-		if (searchType === 'all' || searchType === 'playlists') {
-			const playlists = await YTMusic.searchPlaylists(query);
-			for (const playlist of playlists) {
-				results.push({
-					type: 'playlist',
-					data: this.mapPlaylistPreviewToPlaylist(playlist),
-				});
+			if (searchType === 'all' || searchType === 'artists') {
+				for (const channel of extResults.channels) {
+					results.push({
+						type: 'artist',
+						data: {
+							artistId: channel.id,
+							name: channel.name,
+						},
+					});
+				}
+			}
+		} catch (error) {
+			console.error('Search failed:', error);
+			
+			// Fallback to node-youtube-music if youtube-ext fails
+			try {
+				if (searchType === 'all' || searchType === 'songs') {
+					const songs = await YTMusic.searchMusics(query);
+					for (const song of songs) {
+						results.push({
+							type: 'song',
+							data: this.mapMusicVideoToTrack(song),
+						});
+					}
+				}
+
+				if (searchType === 'all' || searchType === 'albums') {
+					const albums = await YTMusic.searchAlbums(query);
+					for (const album of albums) {
+						results.push({
+							type: 'album',
+							data: this.mapAlbumPreviewToAlbum(album),
+						});
+					}
+				}
+
+				if (searchType === 'all' || searchType === 'artists') {
+					const artists = await YTMusic.searchArtists(query);
+					for (const artist of artists) {
+						results.push({
+							type: 'artist',
+							data: this.mapArtistPreviewToArtist(artist),
+						});
+					}
+				}
+
+				if (searchType === 'all' || searchType === 'playlists') {
+					const playlists = await YTMusic.searchPlaylists(query);
+					for (const playlist of playlists) {
+						results.push({
+							type: 'playlist',
+							data: this.mapPlaylistPreviewToPlaylist(playlist),
+						});
+					}
+				}
+			} catch (fallbackError) {
+				console.error('Fallback search also failed:', fallbackError);
 			}
 		}
 
@@ -67,8 +124,6 @@ class MusicService {
 	}
 
 	async getTrack(videoId: string): Promise<Track | null> {
-		// node-youtube-music doesn't have getTrack, we can search and find
-		// but for playback we usually just need the videoId anyway
 		return {
 			videoId,
 			title: 'Unknown Track',
@@ -77,38 +132,70 @@ class MusicService {
 	}
 
 	async getAlbum(albumId: string): Promise<Album> {
-		const tracks = await YTMusic.listMusicsFromAlbum(albumId);
-		return {
-			albumId,
-			name: 'Unknown Album',
-			artists: [],
-			tracks: tracks.map(t => this.mapMusicVideoToTrack(t)),
-		} as unknown as Album;
+		try {
+			const tracks = await YTMusic.listMusicsFromAlbum(albumId);
+			return {
+				albumId,
+				name: 'Unknown Album',
+				artists: [],
+				tracks: tracks.map(t => this.mapMusicVideoToTrack(t)),
+			} as unknown as Album;
+		} catch (error) {
+			console.error('Failed to get album:', error);
+			return {
+				albumId,
+				name: 'Error loading album',
+				artists: [],
+				tracks: [],
+			} as unknown as Album;
+		}
 	}
 
 	async getArtist(artistId: string): Promise<Artist> {
-		const artist = await YTMusic.getArtist(artistId, {
-			lang: 'en',
-			country: 'US',
-		});
-		return {
-			artistId: artist.artistId || artistId,
-			name: artist.name || 'Unknown Artist',
-		};
+		try {
+			const artist = await YTMusic.getArtist(artistId, {
+				lang: 'en',
+				country: 'US',
+			});
+			return {
+				artistId: artist.artistId || artistId,
+				name: artist.name || 'Unknown Artist',
+			};
+		} catch (error) {
+			console.error('Failed to get artist:', error);
+			return {
+				artistId,
+				name: 'Unknown Artist',
+			};
+		}
 	}
 
 	async getPlaylist(playlistId: string): Promise<Playlist> {
-		const tracks = await YTMusic.listMusicsFromPlaylist(playlistId);
-		return {
-			playlistId,
-			name: 'Unknown Playlist',
-			tracks: tracks.map(t => this.mapMusicVideoToTrack(t)),
-		};
+		try {
+			const tracks = await YTMusic.listMusicsFromPlaylist(playlistId);
+			return {
+				playlistId,
+				name: 'Unknown Playlist',
+				tracks: tracks.map(t => this.mapMusicVideoToTrack(t)),
+			};
+		} catch (error) {
+			console.error('Failed to get playlist:', error);
+			return {
+				playlistId,
+				name: 'Error loading playlist',
+				tracks: [],
+			};
+		}
 	}
 
 	async getSuggestions(trackId: string): Promise<Track[]> {
-		const suggestions = await YTMusic.getSuggestions(trackId);
-		return suggestions.map(t => this.mapMusicVideoToTrack(t));
+		try {
+			const suggestions = await YTMusic.getSuggestions(trackId);
+			return suggestions.map(t => this.mapMusicVideoToTrack(t));
+		} catch (error) {
+			console.error('Failed to get suggestions:', error);
+			return [];
+		}
 	}
 
 	async getStreamUrl(videoId: string): Promise<string> {
@@ -145,6 +232,20 @@ class MusicService {
 			console.error('Failed to get stream URL:', error);
 			return `https://www.youtube.com/watch?v=${videoId}`;
 		}
+	}
+
+	private parseDuration(text: string): number {
+		const parts = text.split(':').map(Number);
+		if (parts.length === 3) {
+			return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+		}
+		if (parts.length === 2) {
+			return (parts[0] || 0) * 60 + (parts[1] || 0);
+		}
+		if (parts.length === 1) {
+			return parts[0] || 0;
+		}
+		return 0;
 	}
 
 	private mapMusicVideoToTrack(mv: YTMusic.MusicVideo): Track {

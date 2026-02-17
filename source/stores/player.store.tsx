@@ -176,55 +176,155 @@ type PlayerContextValue = {
 	setQueuePosition: (position: number) => void;
 };
 
+import {getConfigService} from '../services/config/config.service.ts';
+import {getMusicService} from '../services/youtube-music/api.ts';
+import {getPlayerService} from '../services/player/player.service.ts';
+import {useEffect, useRef, useMemo} from 'react';
+
 const PlayerContext = createContext<PlayerContextValue | null>(null);
+
+function PlayerManager() {
+	const {state, dispatch, next} = usePlayer();
+	const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+	const musicService = getMusicService();
+	const playerService = getPlayerService();
+
+	// Initialize audio on mount
+	useEffect(() => {
+		const config = getConfigService();
+		dispatch({category: 'SET_VOLUME', volume: config.get('volume')});
+
+		return () => {
+			if (progressIntervalRef.current) {
+				clearInterval(progressIntervalRef.current);
+			}
+			playerService.stop();
+		};
+	}, []);
+
+	// Handle track changes
+	useEffect(() => {
+		if (!state.currentTrack) {
+			return;
+		}
+
+		const loadAndPlayTrack = async () => {
+			dispatch({category: 'SET_LOADING', loading: true});
+
+			try {
+				const url = await musicService.getStreamUrl(state.currentTrack!.videoId);
+
+				if (!url) {
+					throw new Error('Failed to get stream URL');
+				}
+
+				await playerService.play(url);
+
+				dispatch({category: 'SET_LOADING', loading: false});
+			} catch (error) {
+				dispatch({
+					category: 'SET_ERROR',
+					error:
+						error instanceof Error ? error.message : 'Failed to load track',
+				});
+			}
+		};
+
+		void loadAndPlayTrack();
+	}, [state.currentTrack?.videoId]);
+
+	// Handle progress tracking
+	useEffect(() => {
+		if (state.isPlaying && state.currentTrack) {
+			if (!progressIntervalRef.current) {
+				progressIntervalRef.current = setInterval(() => {
+					dispatch({
+						category: 'UPDATE_PROGRESS',
+						progress: (state.progress ?? 0) + 1,
+					});
+				}, 1000);
+			}
+		} else {
+			if (progressIntervalRef.current) {
+				clearInterval(progressIntervalRef.current);
+				progressIntervalRef.current = null;
+			}
+		}
+
+		return () => {
+			if (progressIntervalRef.current) {
+				clearInterval(progressIntervalRef.current);
+				progressIntervalRef.current = null;
+			}
+		};
+	}, [state.isPlaying, state.currentTrack, state.progress]);
+
+	// Handle play/pause state
+	useEffect(() => {
+		if (!state.isPlaying) {
+			playerService.pause();
+		}
+	}, [state.isPlaying]);
+
+	// Handle volume changes
+	useEffect(() => {
+		const config = getConfigService();
+		config.set('volume', state.volume);
+	}, [state.volume]);
+
+	// Handle track completion
+	useEffect(() => {
+		if (state.duration > 0 && state.progress >= state.duration) {
+			if (state.repeat === 'one') {
+				dispatch({category: 'SEEK', position: 0});
+			} else {
+				next();
+			}
+		}
+	}, [state.progress, state.duration, state.repeat, next]);
+
+	return null;
+}
 
 export function PlayerProvider({children}: {children: React.ReactNode}) {
 	const [state, dispatch] = useReducer(playerReducer, initialState);
 
-	const play = (track: Track) => dispatch({category: 'PLAY', track});
-	const pause = () => dispatch({category: 'PAUSE'});
-	const resume = () => dispatch({category: 'RESUME'});
-	const next = () => dispatch({category: 'NEXT'});
-	const previous = () => dispatch({category: 'PREVIOUS'});
-	const seek = (position: number) => dispatch({category: 'SEEK', position});
-	const setVolume = (volume: number) =>
-		dispatch({category: 'SET_VOLUME', volume});
-	const volumeUp = () => dispatch({category: 'VOLUME_UP'});
-	const volumeDown = () => dispatch({category: 'VOLUME_DOWN'});
-	const toggleShuffle = () => dispatch({category: 'TOGGLE_SHUFFLE'});
-	const toggleRepeat = () => dispatch({category: 'TOGGLE_REPEAT'});
-	const setQueue = (queue: Track[]) => dispatch({category: 'SET_QUEUE', queue});
-	const addToQueue = (track: Track) =>
-		dispatch({category: 'ADD_TO_QUEUE', track});
-	const removeFromQueue = (index: number) =>
-		dispatch({category: 'REMOVE_FROM_QUEUE', index});
-	const clearQueue = () => dispatch({category: 'CLEAR_QUEUE'});
-	const setQueuePosition = (position: number) =>
-		dispatch({category: 'SET_QUEUE_POSITION', position});
+	const actions = useMemo(
+		() => ({
+			play: (track: Track) => dispatch({category: 'PLAY', track}),
+			pause: () => dispatch({category: 'PAUSE'}),
+			resume: () => dispatch({category: 'RESUME'}),
+			next: () => dispatch({category: 'NEXT'}),
+			previous: () => dispatch({category: 'PREVIOUS'}),
+			seek: (position: number) => dispatch({category: 'SEEK', position}),
+			setVolume: (volume: number) => dispatch({category: 'SET_VOLUME', volume}),
+			volumeUp: () => dispatch({category: 'VOLUME_UP'}),
+			volumeDown: () => dispatch({category: 'VOLUME_DOWN'}),
+			toggleShuffle: () => dispatch({category: 'TOGGLE_SHUFFLE'}),
+			toggleRepeat: () => dispatch({category: 'TOGGLE_REPEAT'}),
+			setQueue: (queue: Track[]) => dispatch({category: 'SET_QUEUE', queue}),
+			addToQueue: (track: Track) => dispatch({category: 'ADD_TO_QUEUE', track}),
+			removeFromQueue: (index: number) =>
+				dispatch({category: 'REMOVE_FROM_QUEUE', index}),
+			clearQueue: () => dispatch({category: 'CLEAR_QUEUE'}),
+			setQueuePosition: (position: number) =>
+				dispatch({category: 'SET_QUEUE_POSITION', position}),
+		}),
+		[],
+	);
+
+	const contextValue = useMemo(
+		() => ({
+			state,
+			dispatch,
+			...actions,
+		}),
+		[state, actions],
+	);
 
 	return (
-		<PlayerContext.Provider
-			value={{
-				state,
-				dispatch,
-				play,
-				pause,
-				resume,
-				next,
-				previous,
-				seek,
-				setVolume,
-				volumeUp,
-				volumeDown,
-				toggleShuffle,
-				toggleRepeat,
-				setQueue,
-				addToQueue,
-				removeFromQueue,
-				clearQueue,
-				setQueuePosition,
-			}}
-		>
+		<PlayerContext.Provider value={contextValue}>
+			<PlayerManager />
 			{children}
 		</PlayerContext.Provider>
 	);

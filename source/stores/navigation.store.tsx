@@ -4,7 +4,7 @@ import type {
 	NavigationState,
 	NavigationAction,
 } from '../types/navigation.types.ts';
-import {createContext, useContext, useReducer} from 'react';
+import {createContext, useContext, useReducer, useMemo} from 'react';
 
 const initialState: NavigationState = {
 	currentView: 'player',
@@ -82,8 +82,10 @@ const NavigationContext = createContext<NavigationContextValue | null>(null);
 export function NavigationProvider({children}: {children: React.JSX.Element}) {
 	const [state, dispatch] = useReducer(navigationReducer, initialState);
 
+	const contextValue = useMemo(() => ({state, dispatch}), [state, dispatch]);
+
 	return (
-		<NavigationContext.Provider value={{state, dispatch}}>
+		<NavigationContext.Provider value={contextValue}>
 			{children}
 		</NavigationContext.Provider>
 	);

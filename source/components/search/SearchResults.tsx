@@ -57,7 +57,11 @@ export default function SearchResults({
 
 	useKeyBinding(KEYBINDINGS.UP, navigateUp);
 	useKeyBinding(KEYBINDINGS.DOWN, navigateDown);
-	useKeyBinding(KEYBINDINGS.SELECT, playSelected);
+	useKeyBinding(KEYBINDINGS.SELECT, () => {
+		if (isActive) {
+			playSelected();
+		}
+	});
 
 	// Sync selected index with navigation state
 	useEffect(() => {

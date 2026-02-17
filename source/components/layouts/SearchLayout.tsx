@@ -17,12 +17,14 @@ export default function SearchLayout() {
 	const {isLoading, error, search} = useYouTubeMusic();
 	const [results, setResults] = useState<SearchResult[]>([]);
 	const [isTyping, setIsTyping] = useState(true);
+	const [isSearching, setIsSearching] = useState(false);
 
 	// Handle search action
 	const performSearch = useCallback(
 		async (query: string) => {
-			if (!query) return;
+			if (!query || isSearching) return;
 
+			setIsSearching(true);
 			const response = await search(query, {
 				type: navState.searchType,
 				limit: navState.searchLimit,
@@ -33,8 +35,9 @@ export default function SearchLayout() {
 				dispatch({category: 'SET_HAS_SEARCHED', hasSearched: true});
 				setIsTyping(false); // Move focus to results after search
 			}
+			setIsSearching(false);
 		},
-		[search, navState.searchType, navState.searchLimit, dispatch],
+		[search, navState.searchType, navState.searchLimit, dispatch, isSearching],
 	);
 
 	// Adjust results limit
@@ -51,10 +54,10 @@ export default function SearchLayout() {
 
 	// Initial search if query is in state
 	useEffect(() => {
-		if (navState.searchQuery && !navState.hasSearched) {
+		if (isTyping && navState.searchQuery && !navState.hasSearched) {
 			void performSearch(navState.searchQuery);
 		}
-	}, [navState.searchQuery, navState.hasSearched, performSearch]);
+	}, [isTyping, navState.searchQuery, navState.hasSearched, performSearch]);
 
 	// Handle going back
 	const goBack = useCallback(() => {
@@ -95,7 +98,7 @@ export default function SearchLayout() {
 
 			{/* Search Bar */}
 			<SearchBar
-				isActive={isTyping}
+				isActive={isTyping && !isSearching}
 				onInput={input => {
 					dispatch({category: 'SET_SEARCH_QUERY', query: input});
 					void performSearch(input);
@@ -103,7 +106,7 @@ export default function SearchLayout() {
 			/>
 
 			{/* Loading */}
-			{isLoading && <Text color={theme.colors.accent}>Searching...</Text>}
+			{(isLoading || isSearching) && <Text color={theme.colors.accent}>Searching...</Text>}
 
 			{/* Error */}
 			{error && <Text color={theme.colors.error}>{error}</Text>}

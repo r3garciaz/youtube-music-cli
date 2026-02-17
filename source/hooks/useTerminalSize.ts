@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useStdout} from 'ink';
 
 export function useTerminalSize() {
@@ -24,5 +24,5 @@ export function useTerminalSize() {
 		};
 	}, [stdout]);
 
-	return size;
+	return useMemo(() => size, [size.columns, size.rows]);
 }

@@ -52,7 +52,8 @@ export function KeyboardManager() {
 				// Handle special keys
 				const isMatch =
 					(lowerBinding === 'escape' && key.escape) ||
-					((lowerBinding === 'return' || lowerBinding === 'enter') && key.return) ||
+					((lowerBinding === 'return' || lowerBinding === 'enter') &&
+						key.return) ||
 					(lowerBinding === 'backspace' && key.backspace) ||
 					(lowerBinding === 'tab' && key.tab) ||
 					(lowerBinding === 'up' && key.upArrow) ||
@@ -92,9 +93,4 @@ export function KeyboardManager() {
 	});
 
 	return null;
-}
-
-// Deprecated in favor of useKeyBinding
-export function useKeyboard(_bindings: Record<string, any>): void {
-	// This is kept for compatibility but should be replaced
 }

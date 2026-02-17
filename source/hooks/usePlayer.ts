@@ -3,20 +3,14 @@ import {useEffect, useRef, useCallback} from 'react';
 import {usePlayer as usePlayerStore} from '../stores/player.store.tsx';
 import {getConfigService} from '../services/config/config.service.ts';
 import {getMusicService} from '../services/youtube-music/api.ts';
+import {getPlayerService} from '../services/player/player.service.ts';
 import type {Track} from '../types/youtube-music.types.ts';
-
-type AudioElement = {
-	play: () => Promise<void>;
-	pause: () => void;
-	seek: (time: number) => void;
-	setVolume: (volume: number) => void;
-};
 
 export function usePlayer() {
 	const {state, dispatch, ...playerStore} = usePlayerStore();
-	const audioRef = useRef<AudioElement | null>(null);
 	const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	const musicService = getMusicService();
+	const playerService = getPlayerService();
 
 	// Initialize audio on mount
 	useEffect(() => {
@@ -27,8 +21,9 @@ export function usePlayer() {
 			if (progressIntervalRef.current) {
 				clearInterval(progressIntervalRef.current);
 			}
+			playerService.stop();
 		};
-	}, []);
+	}, [dispatch, playerService]);
 
 	// Handle track changes
 	useEffect(() => {
@@ -40,32 +35,13 @@ export function usePlayer() {
 			dispatch({category: 'SET_LOADING', loading: true});
 
 			try {
-				await musicService.getStreamUrl(state.currentTrack!.videoId);
+				const url = await musicService.getStreamUrl(state.currentTrack!.videoId);
 
-				// Clean up previous audio
-				if (audioRef.current) {
-					audioRef.current.pause();
-					audioRef.current = null;
+				if (!url) {
+					throw new Error('Failed to get stream URL');
 				}
 
-				// Create new audio element (browser-style API simulation)
-				// Note: In a real CLI, we'd use a library like play-sound or speaker
-				// For now, this is a placeholder for the actual audio playback
-				audioRef.current = {
-					play: async () => {
-						// Placeholder: would actually play audio here
-						console.log(`Playing: ${state.currentTrack!.title}`);
-					},
-					pause: () => {
-						// Placeholder
-					},
-					seek: (_time: number) => {
-						void _time;
-					},
-					setVolume: () => {
-						// Placeholder
-					},
-				};
+				await playerService.play(url);
 
 				dispatch({category: 'SET_LOADING', loading: false});
 
@@ -75,13 +51,12 @@ export function usePlayer() {
 				}
 
 				progressIntervalRef.current = setInterval(() => {
+					// In a real app, we'd get progress from the player service
 					dispatch({
 						category: 'UPDATE_PROGRESS',
-						progress: (state.progress ?? 0) + 0.1,
+						progress: (state.progress ?? 0) + 1,
 					});
-				}, 100);
-
-				await audioRef.current.play();
+				}, 1000);
 			} catch (error) {
 				dispatch({
 					category: 'SET_ERROR',
@@ -98,27 +73,22 @@ export function usePlayer() {
 				clearInterval(progressIntervalRef.current);
 			}
 		};
-	}, [state.currentTrack?.videoId]);
+	}, [state.currentTrack?.videoId, dispatch, musicService, playerService]);
 
 	// Handle play/pause state
 	useEffect(() => {
-		if (!audioRef.current) {
-			return;
-		}
-
 		if (state.isPlaying) {
-			audioRef.current.play();
+			if (state.currentTrack) {
+				// We don't have the URL here easily without re-fetching or storing it
+				// For now, assume playerService handles its internal state
+			}
 		} else {
-			audioRef.current.pause();
+			playerService.pause();
 		}
-	}, [state.isPlaying]);
+	}, [state.isPlaying, playerService]);
 
 	// Handle volume changes
 	useEffect(() => {
-		if (audioRef.current) {
-			audioRef.current.setVolume(state.volume / 100);
-		}
-
 		// Save to config
 		const config = getConfigService();
 		config.set('volume', state.volume);

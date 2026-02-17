@@ -20,12 +20,16 @@ class PlayerService {
 		return PlayerService.instance;
 	}
 
-	async play(_url: string): Promise<void> {
+	async play(url: string): Promise<void> {
 		this.stop();
+
+		// Basic sanitization to prevent shell injection
+		// In a production app, we'd use a more robust escaping library
+		const sanitizedUrl = url.replace(/[^a-zA-Z0-9:/?&.=_#-]/g, '');
 
 		return new Promise<void>((resolve, reject) => {
 			// @ts-expect-error - play-sound types are not complete
-			this.currentSound = playSound.play(_url, (err?: Error) => {
+			this.currentSound = playSound().play(sanitizedUrl, (err?: Error) => {
 				if (err) {
 					reject(err);
 				} else {

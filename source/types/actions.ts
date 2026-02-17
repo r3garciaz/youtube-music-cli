@@ -125,3 +125,8 @@ export interface SetHasSearchedAction {
 	readonly category: 'SET_HAS_SEARCHED';
 	hasSearched: boolean;
 }
+
+export interface SetSearchLimitAction {
+	readonly category: 'SET_SEARCH_LIMIT';
+	limit: number;
+}

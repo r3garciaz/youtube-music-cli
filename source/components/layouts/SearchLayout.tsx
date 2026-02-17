@@ -16,6 +16,7 @@ export default function SearchLayout() {
 	const {state: navState, dispatch} = useNavigation();
 	const {isLoading, error, search} = useYouTubeMusic();
 	const [results, setResults] = useState<SearchResult[]>([]);
+	const [isTyping, setIsTyping] = useState(true);
 
 	// Handle search action
 	const performSearch = useCallback(
@@ -24,15 +25,29 @@ export default function SearchLayout() {
 
 			const response = await search(query, {
 				type: navState.searchType,
+				limit: navState.searchLimit,
 			});
 
 			if (response) {
 				setResults(response.results);
 				dispatch({category: 'SET_HAS_SEARCHED', hasSearched: true});
+				setIsTyping(false); // Move focus to results after search
 			}
 		},
-		[search, navState.searchType, dispatch],
+		[search, navState.searchType, navState.searchLimit, dispatch],
 	);
+
+	// Adjust results limit
+	const increaseLimit = useCallback(() => {
+		dispatch({category: 'SET_SEARCH_LIMIT', limit: navState.searchLimit + 5});
+	}, [navState.searchLimit, dispatch]);
+
+	const decreaseLimit = useCallback(() => {
+		dispatch({category: 'SET_SEARCH_LIMIT', limit: navState.searchLimit - 5});
+	}, [navState.searchLimit, dispatch]);
+
+	useKeyBinding(KEYBINDINGS.INCREASE_RESULTS, increaseLimit);
+	useKeyBinding(KEYBINDINGS.DECREASE_RESULTS, decreaseLimit);
 
 	// Initial search if query is in state
 	useEffect(() => {
@@ -43,8 +58,12 @@ export default function SearchLayout() {
 
 	// Handle going back
 	const goBack = useCallback(() => {
-		dispatch({category: 'GO_BACK'});
-	}, [dispatch]);
+		if (!isTyping) {
+			setIsTyping(true); // Back to typing if in results
+		} else {
+			dispatch({category: 'GO_BACK'});
+		}
+	}, [isTyping, dispatch]);
 
 	useKeyBinding(KEYBINDINGS.BACK, goBack);
 
@@ -69,11 +88,14 @@ export default function SearchLayout() {
 					Search
 				</Text>
 				<Text color={theme.colors.dim}> | </Text>
-				<Text color={theme.colors.dim}>Type to search, Enter to search</Text>
+				<Text color={theme.colors.dim}>
+					Limit: {navState.searchLimit} (Use [ or ] to adjust)
+				</Text>
 			</Box>
 
 			{/* Search Bar */}
 			<SearchBar
+				isActive={isTyping}
 				onInput={input => {
 					dispatch({category: 'SET_SEARCH_QUERY', query: input});
 					void performSearch(input);
@@ -91,6 +113,7 @@ export default function SearchLayout() {
 				<SearchResults
 					results={results}
 					selectedIndex={navState.selectedResult}
+					isActive={!isTyping}
 				/>
 			)}
 
@@ -102,7 +125,9 @@ export default function SearchLayout() {
 			{/* Instructions */}
 			<Box marginTop={1}>
 				<Text color={theme.colors.dim}>
-					Press <Text color={theme.colors.text}>Esc</Text> to go back
+					{isTyping
+						? 'Type to search, Enter to start'
+						: 'Arrows to navigate, Enter to play, Esc to type again'}
 				</Text>
 			</Box>
 		</Box>

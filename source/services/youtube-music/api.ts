@@ -9,7 +9,12 @@ import type {
 	SearchResult,
 } from '../../types/youtube-music.types.ts';
 import * as YTMusic from 'node-youtube-music';
-import {videoInfo, getFormats, search as searchExt, type VideoFormat} from 'youtube-ext';
+import {
+	videoInfo,
+	getFormats,
+	search as searchExt,
+	type VideoFormat,
+} from 'youtube-ext';
 import {getConfigService} from '../config/config.service.ts';
 
 class MusicService {
@@ -70,7 +75,7 @@ class MusicService {
 			}
 		} catch (error) {
 			console.error('Search failed:', error);
-			
+
 			// Fallback to node-youtube-music if youtube-ext fails
 			try {
 				if (searchType === 'all' || searchType === 'songs') {
@@ -200,7 +205,9 @@ class MusicService {
 
 	async getStreamUrl(videoId: string): Promise<string> {
 		try {
-			const info = await videoInfo(`https://www.youtube.com/watch?v=${videoId}`);
+			const info = await videoInfo(
+				`https://www.youtube.com/watch?v=${videoId}`,
+			);
 			const formats = await getFormats(info.stream);
 			const config = getConfigService();
 			const quality = config.get('streamQuality') || 'high';
@@ -262,7 +269,7 @@ class MusicService {
 						albumId: '',
 						name: mv.album,
 						artists: [],
-				  }
+					}
 				: undefined,
 			duration: mv.duration?.totalSeconds,
 		};
@@ -278,7 +285,7 @@ class MusicService {
 							artistId: ap.artistId,
 							name: ap.artist || 'Unknown Artist',
 						},
-				  ]
+					]
 				: [],
 		};
 	}

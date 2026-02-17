@@ -4,10 +4,12 @@ import {Box, Text} from 'ink';
 import {usePlayer} from '../../hooks/usePlayer.ts';
 import {useTheme} from '../../hooks/useTheme.ts';
 import {formatTime} from '../../utils/format.ts';
+import {useTerminalSize} from '../../hooks/useTerminalSize.ts';
 
 export default function NowPlaying() {
 	const {theme} = useTheme();
 	const {state: playerState} = usePlayer();
+	const {columns} = useTerminalSize();
 
 	if (!playerState.currentTrack) {
 		return (
@@ -69,13 +71,22 @@ export default function NowPlaying() {
 				<Box>
 					<Text color={theme.colors.primary}>
 						{'■'.repeat(
-							Math.floor((playerState.progress / playerState.duration) * 20),
+							Math.floor(
+								(playerState.progress / playerState.duration) * (columns - 10),
+							),
 						)}
 					</Text>
 					<Text color={theme.colors.dim}>
 						{'-'.repeat(
-							20 -
-								Math.floor((playerState.progress / playerState.duration) * 20),
+							Math.max(
+								0,
+								columns -
+									10 -
+									Math.floor(
+										(playerState.progress / playerState.duration) *
+											(columns - 10),
+									),
+							),
 						)}
 					</Text>
 				</Box>

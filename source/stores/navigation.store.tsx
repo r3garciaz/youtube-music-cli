@@ -15,6 +15,7 @@ const initialState: NavigationState = {
 	selectedResult: 0,
 	selectedPlaylist: 0,
 	hasSearched: false,
+	searchLimit: 10,
 	history: [],
 };
 
@@ -59,6 +60,12 @@ function navigationReducer(
 
 		case 'SET_HAS_SEARCHED':
 			return {...state, hasSearched: action.hasSearched};
+
+		case 'SET_SEARCH_LIMIT':
+			return {
+				...state,
+				searchLimit: Math.max(1, Math.min(50, action.limit)),
+			};
 
 		default:
 			return state;

@@ -9,9 +9,10 @@ import {Box, Text, useInput} from 'ink';
 
 type Props = {
 	onInput: (input: string) => void;
+	isActive?: boolean;
 };
 
-export default function SearchBar({onInput}: Props) {
+export default function SearchBar({onInput, isActive = true}: Props) {
 	const {theme} = useTheme();
 	const {state: navState, dispatch} = useNavigation();
 	const [input, setInput] = useState('');
@@ -21,6 +22,7 @@ export default function SearchBar({onInput}: Props) {
 
 	// Handle character input
 	useInput((char, key) => {
+		if (!isActive) return;
 		if (key.ctrl || key.meta) return;
 
 		if (key.backspace || key.delete) {
@@ -41,6 +43,7 @@ export default function SearchBar({onInput}: Props) {
 
 	// Handle type switching
 	const cycleType = useCallback(() => {
+		if (!isActive) return;
 		const nextIndex = (selectedTypeIndex + 1) % searchTypes.length;
 		setSelectedTypeIndex(nextIndex);
 		const nextType = searchTypes[nextIndex];
@@ -50,10 +53,11 @@ export default function SearchBar({onInput}: Props) {
 				searchType: nextType,
 			});
 		}
-	}, [selectedTypeIndex, searchTypes, dispatch]);
+	}, [selectedTypeIndex, searchTypes, dispatch, isActive]);
 
 	useKeyBinding(['tab'], cycleType);
 	useKeyBinding(KEYBINDINGS.CLEAR_SEARCH, () => {
+		if (!isActive) return;
 		setInput('');
 		onInput('');
 	});

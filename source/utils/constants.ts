@@ -62,6 +62,8 @@ export const KEYBINDINGS = {
 	CLEAR_SEARCH: ['escape'],
 	NEXT_RESULT: ['tab'],
 	PREV_RESULT: ['shift+tab'],
+	INCREASE_RESULTS: [']'],
+	DECREASE_RESULTS: ['['],
 
 	// Playlist
 	ADD_TO_PLAYLIST: ['a'],

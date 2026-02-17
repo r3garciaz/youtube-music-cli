@@ -7,6 +7,7 @@ import type {
 	SetSelectedResultAction,
 	SetSelectedPlaylistAction,
 	SetHasSearchedAction,
+	SetSearchLimitAction,
 } from './actions.ts';
 
 export interface NavigationState {
@@ -18,6 +19,7 @@ export interface NavigationState {
 	selectedResult: number;
 	selectedPlaylist: number;
 	hasSearched: boolean;
+	searchLimit: number;
 	history: string[];
 }
 
@@ -28,4 +30,5 @@ export type NavigationAction =
 	| SetSearchCategoryAction
 	| SetSelectedResultAction
 	| SetSelectedPlaylistAction
-	| SetHasSearchedAction;
+	| SetHasSearchedAction
+	| SetSearchLimitAction;

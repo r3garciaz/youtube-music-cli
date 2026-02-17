@@ -91,6 +91,8 @@ export default function Help() {
 						<Text color={theme.colors.text}>Tab</Text> - Switch Search Type
 						<Text> | </Text>
 						<Text color={theme.colors.text}>Esc</Text> - Clear Search
+						<Text> | </Text>
+						<Text color={theme.colors.text}>[ / ]</Text> - Results Limit
 					</Text>
 				</Box>
 

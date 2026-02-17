@@ -8,7 +8,7 @@ import {useKeyBinding} from '../../hooks/useKeyboard.ts';
 import {usePlayer} from '../../hooks/usePlayer.ts';
 import {KEYBINDINGS} from '../../utils/constants.ts';
 import {truncate} from '../../utils/format.ts';
-import {useCallback, useEffect} from 'react';
+import {useCallback} from 'react';
 import {useTerminalSize} from '../../hooks/useTerminalSize.ts';
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
 
 function SearchResults({results, selectedIndex, isActive = true}: Props) {
 	const {theme} = useTheme();
-	const {state: navState, dispatch} = useNavigation();
+	const {dispatch} = useNavigation();
 	const {play} = usePlayer();
 	const {columns} = useTerminalSize();
 
@@ -55,11 +55,9 @@ function SearchResults({results, selectedIndex, isActive = true}: Props) {
 		}
 	});
 
-	// Sync selected index with navigation state
-	useEffect(() => {
-		if (!isActive) return;
-		dispatch({category: 'SET_SELECTED_RESULT', index: selectedIndex});
-	}, [selectedIndex, dispatch, isActive]);
+	// Note: Removed redundant useEffect that was syncing selectedIndex to dispatch
+	// This was causing unnecessary re-renders. The selectedIndex is already managed
+	// by the parent component (SearchLayout) and passed down as a prop.
 
 	if (results.length === 0) {
 		return null;
@@ -83,7 +81,7 @@ function SearchResults({results, selectedIndex, isActive = true}: Props) {
 
 			{/* Results list */}
 			{results.map((result, index) => {
-				const isSelected = index === navState.selectedResult;
+				const isSelected = index === selectedIndex;
 				const data = result.data;
 
 				const title =

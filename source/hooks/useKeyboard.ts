@@ -1,7 +1,6 @@
 // Keyboard input handling hook
 import {useCallback, useEffect} from 'react';
 import {useInput} from 'ink';
-import ansiEscapes from 'ansi-escapes';
 
 type KeyHandler = () => void;
 type RegistryEntry = {
@@ -40,15 +39,12 @@ export function KeyboardManager() {
 	useInput((input, key) => {
 		// Global quit handling
 		if (key.ctrl && input === 'c') {
-			process.stdout.write(ansiEscapes.clearScreen);
+			// Exit cleanly without clearing screen (let Ink handle cleanup)
 			process.exit(0);
 		}
 
-		// Manual screen refresh (useful if terminal gets messy)
-		if (key.ctrl && input === 'l') {
-			process.stdout.write(ansiEscapes.clearTerminal);
-			return;
-		}
+		// Note: Ctrl+L refresh removed to fix scroll-to-top issue
+		// Direct ANSI escapes bypass Ink's rendering and cause scrolling problems
 
 		// Dispatch to all registered handlers
 		for (const entry of registry) {

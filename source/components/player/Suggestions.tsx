@@ -58,7 +58,7 @@ export default function Suggestions() {
 			{suggestions.map((track, index) => {
 				const isSelected = index === selectedIndex;
 				return (
-					<Box key={track.videoId + index} paddingX={1}>
+					<Box key={track.videoId} paddingX={1}>
 						<Text
 							backgroundColor={isSelected ? theme.colors.primary : undefined}
 							color={isSelected ? theme.colors.background : theme.colors.text}

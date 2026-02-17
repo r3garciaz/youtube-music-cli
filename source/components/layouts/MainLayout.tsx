@@ -1,5 +1,5 @@
 // Main layout shell
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 import React from 'react';
 import {useNavigation} from '../../hooks/useNavigation.ts';
 import PlaylistList from '../playlist/PlaylistList.tsx';
@@ -55,30 +55,32 @@ function MainLayout() {
 	useKeyBinding(KEYBINDINGS.SETTINGS, goToSettings);
 	useKeyBinding(KEYBINDINGS.HELP, goBack);
 
-	const renderView = () => {
+	// Memoize the view component to prevent unnecessary remounts
+	// Only recreate when currentView actually changes
+	const currentView = useMemo(() => {
 		switch (navState.currentView) {
 			case 'player':
-				return <PlayerLayout />;
+				return <PlayerLayout key="player" />;
 
 			case 'search':
-				return <SearchLayout />;
+				return <SearchLayout key="search" />;
 
 			case 'playlists':
-				return <PlaylistList />;
+				return <PlaylistList key="playlists" />;
 
 			case 'suggestions':
-				return <Suggestions />;
+				return <Suggestions key="suggestions" />;
 
 			case 'settings':
-				return <Settings />;
+				return <Settings key="settings" />;
 
 			case 'help':
-				return <Help />;
+				return <Help key="help" />;
 
 			default:
-				return <PlayerLayout />;
+				return <PlayerLayout key="player-default" />;
 		}
-	};
+	}, [navState.currentView]);
 
 	return (
 		<Box
@@ -87,7 +89,7 @@ function MainLayout() {
 			borderStyle="single"
 			borderColor={theme.colors.primary}
 		>
-			{renderView()}
+			{currentView}
 		</Box>
 	);
 }

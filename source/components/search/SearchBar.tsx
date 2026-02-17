@@ -84,16 +84,24 @@ function SearchBar({onInput, isActive = true}: Props) {
 			</Box>
 
 			{/* Input - using ink-text-input */}
-			<Box>
-				<Text color={theme.colors.primary}>Search: </Text>
-				<TextInput
-					value={input}
-					onChange={setInput}
-					onSubmit={handleSubmit}
-					placeholder="Type to search..."
-					focus={isActive}
-				/>
-			</Box>
+			{isActive && (
+				<Box>
+					<Text color={theme.colors.primary}>Search: </Text>
+					<TextInput
+						value={input}
+						onChange={setInput}
+						onSubmit={handleSubmit}
+						placeholder="Type to search..."
+						focus={isActive}
+					/>
+				</Box>
+			)}
+			{!isActive && (
+				<Box>
+					<Text color={theme.colors.primary}>Search: </Text>
+					<Text color={theme.colors.dim}>{input || 'Type to search...'}</Text>
+				</Box>
+			)}
 
 			{/* Instructions */}
 			<Text color={theme.colors.dim}>

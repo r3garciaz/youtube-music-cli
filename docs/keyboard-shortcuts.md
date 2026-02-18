@@ -11,16 +11,15 @@ Complete reference of all keyboard shortcuts in youtube-music-cli.
 
 These work from any screen.
 
-| Key      | Action               |
-| -------- | -------------------- |
-| `?`      | Show help screen     |
-| `/`      | Open search          |
-| `p`      | Open plugins manager |
-| `g`      | Show suggestions     |
-| `,`      | Open settings        |
-| `Ctrl+L` | Refresh/clear screen |
-| `q`      | Quit application     |
-| `Esc`    | Go back / Close menu |
+| Key   | Action               |
+| ----- | -------------------- |
+| `?`   | Show help screen     |
+| `/`   | Open search          |
+| `p`   | Open plugins manager |
+| `g`   | Show suggestions     |
+| `,`   | Open settings        |
+| `q`   | Quit application     |
+| `Esc` | Go back / Close menu |
 
 ## Playback Controls
 
@@ -51,22 +50,24 @@ These work from any screen.
 
 ## Search
 
-| Key     | Action               |
-| ------- | -------------------- |
-| `/`     | Focus search input   |
-| `Enter` | Execute search       |
-| `Esc`   | Clear search / Close |
-| `]`     | Show more results    |
-| `[`     | Show fewer results   |
+| Key       | Action                                 |
+| --------- | -------------------------------------- |
+| `/`       | Focus search input                     |
+| `Enter`   | Execute search                         |
+| `Esc`     | Clear search / Close                   |
+| `]`       | Show more results                      |
+| `[`       | Show fewer results                     |
+| `Shift+D` | Download selected song/artist/playlist |
 
 ## Playlist
 
-| Key | Action               |
-| --- | -------------------- |
-| `a` | Add to playlist      |
-| `d` | Remove from playlist |
-| `c` | Create new playlist  |
-| `D` | Delete playlist      |
+| Key       | Action                     |
+| --------- | -------------------------- |
+| `a`       | Add to playlist            |
+| `d`       | Remove from playlist       |
+| `c`       | Create new playlist        |
+| `D`       | Delete playlist            |
+| `Shift+D` | Download selected playlist |
 
 ## Plugins Manager
 

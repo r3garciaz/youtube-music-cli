@@ -127,21 +127,10 @@ function SearchLayout() {
 	}, [dispatch]);
 
 	return (
-		<Box flexDirection="column" gap={1}>
-			{/* Search Bar */}
-			<Box
-				borderStyle="single"
-				borderColor={theme.colors.secondary}
-				paddingX={1}
-			>
-				<Text bold color={theme.colors.primary}>
-					Search
-				</Text>
-				<Text color={theme.colors.dim}>
-					{' '}
-					| Limit: {navState.searchLimit} (Use [ or ] to adjust)
-				</Text>
-			</Box>
+		<Box flexDirection="column">
+			<Text color={theme.colors.dim}>
+				Limit: {navState.searchLimit} (Use [ or ] to adjust)
+			</Text>
 
 			<SearchBar
 				isActive={isTyping && !isSearching}

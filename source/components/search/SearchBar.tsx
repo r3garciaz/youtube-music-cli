@@ -66,10 +66,10 @@ function SearchBar({onInput, isActive = true}: Props) {
 			flexDirection="column"
 			borderStyle="single"
 			borderColor={theme.colors.secondary}
-			padding={1}
+			paddingX={1}
 		>
 			{/* Search Type Toggle */}
-			<Box marginBottom={1}>
+			<Box>
 				<Text color={theme.colors.dim}>Type: </Text>
 				{searchTypes.map((type, index) => (
 					<Text
@@ -107,11 +107,6 @@ function SearchBar({onInput, isActive = true}: Props) {
 					<Text color={theme.colors.dim}>{input || 'Type to search...'}</Text>
 				</Box>
 			)}
-
-			{/* Instructions */}
-			<Text color={theme.colors.dim}>
-				Type to search, Enter to search, Tab to change type, Esc to clear
-			</Text>
 		</Box>
 	);
 }

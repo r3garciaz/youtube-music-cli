@@ -25,6 +25,8 @@ A powerful Terminal User Interface (TUI) music player for YouTube Music
 - 🔌 **Plugin System** - Extend functionality with plugins
 - ⌨️ **Keyboard-Driven** - Efficient vim-style navigation
 - 🖥️ **Headless Mode** - Run without TUI for scripting
+- 💾 **Downloads** - Save tracks/playlists/artists with `Shift+D`
+- 🏷️ **Metadata Tagging** - Auto-tag title/artist/album with optional cover art
 
 ## Prerequisites
 
@@ -194,6 +196,12 @@ youtube-music-cli play dQw4w9WgXcQ --shuffle
 | `Enter`   | Select    |
 | `Esc`     | Back      |
 
+### Downloads
+
+| Key       | Action                                                  |
+| --------- | ------------------------------------------------------- |
+| `Shift+D` | Download selected song/artist/playlist or playlist view |
+
 ## Plugins
 
 Extend youtube-music-cli with plugins!
@@ -259,7 +267,10 @@ Config is stored in `~/.youtube-music-cli/config.json`:
 	"volume": 70,
 	"shuffle": false,
 	"repeat": "off",
-	"streamQuality": "high"
+	"streamQuality": "high",
+	"downloadsEnabled": false,
+	"downloadDirectory": "D:/Music/youtube-music-cli",
+	"downloadFormat": "mp3"
 }
 ```
 
@@ -270,6 +281,15 @@ Config is stored in `~/.youtube-music-cli/config.json`:
 | `low`    | 64kbps - Save bandwidth |
 | `medium` | 128kbps - Balanced      |
 | `high`   | 256kbps+ - Best quality |
+
+### Download Settings
+
+- Enable/disable downloads in **Settings** (`,`).
+- Set your download directory in **Settings → Download Folder**.
+- Choose format in **Settings → Download Format** (`mp3` or `m4a`).
+- Downloads are saved as:
+  - `<downloadDirectory>/<artist>/<album>/<title>.mp3` (or `.m4a`)
+- MP3/M4A files are tagged with metadata (`title`, `artist`, `album`) and include cover art when available.
 
 ## Troubleshooting
 
@@ -350,3 +370,11 @@ MIT © [Involvex](https://github.com/involvex)
 Made with ❤️ for music lovers
 
 </div>
+
+## Supporting
+
+**[☕ Buymeacoffee](https://buymeacoffee.com/involvex)**
+
+**[🪙 Paypal](https://paypal.me/involvex)**
+
+**⌨️ [Github Sponsors](https://github.com/sponsors/involvex)**

@@ -7,7 +7,7 @@ import {useNavigation} from '../../hooks/useNavigation.ts';
 import {useKeyBinding} from '../../hooks/useKeyboard.ts';
 import {usePlayer} from '../../hooks/usePlayer.ts';
 import {usePlaylist} from '../../hooks/usePlaylist.ts';
-import {KEYBINDINGS, VIEW} from '../../utils/constants.ts';
+import {KEYBINDINGS} from '../../utils/constants.ts';
 import {truncate} from '../../utils/format.ts';
 import {useCallback, useRef, useEffect, useState} from 'react';
 import {logger} from '../../services/logger/logger.service.ts';
@@ -249,15 +249,11 @@ function SearchResults({
 			playerDispatch({category: 'PLAY', track: firstTrack});
 		}
 
-		// Navigate to player view so the user lands on the queue/player
-		dispatch({category: 'NAVIGATE', view: VIEW.PLAYER});
-
 		mixCreatedRef.current?.(
-			`Created mix "${playlist.name}" with ${uniqueTracks.length} tracks — playing now.`,
+			`Created mix "${playlist.name}" with ${uniqueTracks.length} tracks — playing now (Esc to go back).`,
 		);
 	}, [
 		createPlaylist,
-		dispatch,
 		isActive,
 		musicService,
 		playerDispatch,
@@ -328,18 +324,7 @@ function SearchResults({
 	const maxTitleWidth = Math.max(20, Math.floor(columns * 0.4));
 
 	return (
-		<Box flexDirection="column" gap={1}>
-			<Text color={theme.colors.dim} bold>
-				Results ({results.length})
-			</Text>
-
-			{/* Table header */}
-			<Box paddingX={1}>
-				<Text color={theme.colors.dim} bold>
-					{'#'.padEnd(6)} {'Type'.padEnd(10)} {'Title'.padEnd(maxTitleWidth)}
-				</Text>
-			</Box>
-
+		<Box flexDirection="column">
 			{/* Results list */}
 			{results.map((result, index) => {
 				const isSelected = index === selectedIndex;
@@ -352,8 +337,7 @@ function SearchResults({
 					<Box
 						key={index}
 						paddingX={1}
-						borderStyle={isSelected ? 'double' : undefined}
-						borderColor={isSelected ? theme.colors.primary : undefined}
+						backgroundColor={isSelected ? theme.colors.secondary : undefined}
 					>
 						<Text
 							color={isSelected ? theme.colors.primary : theme.colors.dim}

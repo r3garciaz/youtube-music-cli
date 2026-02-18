@@ -116,11 +116,13 @@ class DownloadService {
 			for (const track of tracks) {
 				const destination = this.getDestinationPath(track, directory, format);
 				const tempSource = `${destination}.source`;
+				const tempCover = `${destination}.cover.jpg`;
 				try {
 					logger.info('DownloadService', 'Starting track download', {
 						videoId: track.videoId,
 						title: track.title,
 					});
+					mkdirSync(path.dirname(destination), {recursive: true});
 					if (existsSync(destination)) {
 						result.skipped++;
 						logger.debug('DownloadService', 'Skipping existing file', {
@@ -165,7 +167,17 @@ class DownloadService {
 						}
 					}
 
-					await this.convertAudio(tempSource, destination, format);
+					const hasCover = await this.downloadCoverArt(
+						track.videoId,
+						tempCover,
+					);
+					await this.convertAudio(
+						tempSource,
+						destination,
+						format,
+						track,
+						hasCover ? tempCover : undefined,
+					);
 					result.downloaded++;
 					logger.info('DownloadService', 'Track download complete', {
 						videoId: track.videoId,
@@ -184,6 +196,9 @@ class DownloadService {
 				} finally {
 					if (existsSync(tempSource)) {
 						unlinkSync(tempSource);
+					}
+					if (existsSync(tempCover)) {
+						unlinkSync(tempCover);
 					}
 				}
 			}
@@ -212,8 +227,11 @@ class DownloadService {
 		format: DownloadFormat,
 	): string {
 		const artist = track.artists[0]?.name ?? 'Unknown Artist';
-		const baseName = this.sanitizeFilename(`${artist} - ${track.title}`);
-		return path.join(directory, `${baseName}.${format}`);
+		const album = track.album?.name ?? 'Singles';
+		const artistDir = this.sanitizeFilename(artist) || 'Unknown Artist';
+		const albumDir = this.sanitizeFilename(album) || 'Singles';
+		const fileName = this.sanitizeFilename(track.title) || track.videoId;
+		return path.join(directory, artistDir, albumDir, `${fileName}.${format}`);
 	}
 
 	private sanitizeFilename(value: string): string {
@@ -256,33 +274,69 @@ class DownloadService {
 		sourcePath: string,
 		destinationPath: string,
 		format: DownloadFormat,
+		track: Track,
+		coverPath?: string,
 	): Promise<void> {
+		const metadataArgs = this.buildMetadataArgs(track);
 		if (format === 'mp3') {
-			await this.runFfmpeg([
-				'-y',
-				'-i',
-				sourcePath,
-				'-vn',
-				'-codec:a',
-				'libmp3lame',
-				'-q:a',
-				'2',
-				destinationPath,
-			]);
+			const args = ['-y', '-i', sourcePath];
+			if (coverPath) {
+				args.push('-i', coverPath, '-map', '0:a:0', '-map', '1:v:0');
+			} else {
+				args.push('-map', '0:a:0', '-vn');
+			}
+
+			args.push('-codec:a', 'libmp3lame', '-q:a', '2', ...metadataArgs);
+
+			if (coverPath) {
+				args.push(
+					'-codec:v',
+					'mjpeg',
+					'-disposition:v:0',
+					'attached_pic',
+					'-metadata:s:v',
+					'title=Album cover',
+					'-metadata:s:v',
+					'comment=Cover (front)',
+				);
+			}
+
+			args.push(destinationPath);
+			await this.runFfmpeg(args);
 			return;
 		}
 
-		await this.runFfmpeg([
-			'-y',
-			'-i',
-			sourcePath,
-			'-vn',
-			'-codec:a',
-			'aac',
-			'-b:a',
-			'192k',
-			destinationPath,
-		]);
+		const args = ['-y', '-i', sourcePath];
+		if (coverPath) {
+			args.push('-i', coverPath, '-map', '0:a:0', '-map', '1:v:0');
+		} else {
+			args.push('-map', '0:a:0', '-vn');
+		}
+
+		args.push('-codec:a', 'aac', '-b:a', '192k', ...metadataArgs);
+		if (coverPath) {
+			args.push('-codec:v', 'mjpeg', '-disposition:v:0', 'attached_pic');
+		}
+
+		args.push(destinationPath);
+		await this.runFfmpeg(args);
+	}
+
+	private buildMetadataArgs(track: Track): string[] {
+		const artist =
+			track.artists
+				.map(row => row.name)
+				.filter(Boolean)
+				.join(', ') || 'Unknown Artist';
+		const album = track.album?.name || 'Singles';
+		return [
+			'-metadata',
+			`title=${track.title}`,
+			'-metadata',
+			`artist=${artist}`,
+			'-metadata',
+			`album=${album}`,
+		];
 	}
 
 	private async runFfmpeg(args: string[]): Promise<void> {
@@ -349,6 +403,30 @@ class DownloadService {
 				);
 			});
 		});
+	}
+
+	private async downloadCoverArt(
+		videoId: string,
+		outputPath: string,
+	): Promise<boolean> {
+		const candidates = [
+			`https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+			`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+		];
+		for (const url of candidates) {
+			try {
+				const response = await fetch(url);
+				if (!response.ok) continue;
+				const image = Buffer.from(await response.arrayBuffer());
+				if (image.length === 0) continue;
+				writeFileSync(outputPath, image);
+				return true;
+			} catch {
+				continue;
+			}
+		}
+
+		return false;
 	}
 
 	private async recordViaMpv(

@@ -37,7 +37,10 @@ const initialState: PlayerState = {
 // Get player service instance
 const playerService = getPlayerService();
 
-function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
+export function playerReducer(
+	state: PlayerState,
+	action: PlayerAction,
+): PlayerState {
 	switch (action.category) {
 		case 'PLAY':
 			return {
@@ -62,7 +65,24 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
 				currentTrack: null,
 			};
 
-		case 'NEXT':
+		case 'NEXT': {
+			if (state.queue.length === 0) return state;
+
+			// Shuffle mode: pick a random track excluding the current position
+			if (state.shuffle && state.queue.length > 1) {
+				let randomIndex: number;
+				do {
+					randomIndex = Math.floor(Math.random() * state.queue.length);
+				} while (randomIndex === state.queuePosition);
+				return {
+					...state,
+					queuePosition: randomIndex,
+					currentTrack: state.queue[randomIndex] ?? null,
+					progress: 0,
+				};
+			}
+
+			// Sequential mode
 			const nextPosition = state.queuePosition + 1;
 			if (nextPosition >= state.queue.length) {
 				if (state.repeat === 'all') {
@@ -81,6 +101,7 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
 				currentTrack: state.queue[nextPosition] ?? null,
 				progress: 0,
 			};
+		}
 
 		case 'PREVIOUS':
 			const prevPosition = state.queuePosition - 1;

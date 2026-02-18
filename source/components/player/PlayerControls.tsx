@@ -30,6 +30,7 @@ export default function PlayerControls() {
 		volumeDown,
 		speedUp,
 		speedDown,
+		toggleShuffle,
 	} = usePlayer();
 
 	// DEBUG: Log when callbacks change (detect instability)
@@ -56,6 +57,7 @@ export default function PlayerControls() {
 	useKeyBinding(KEYBINDINGS.VOLUME_DOWN, volumeDown);
 	useKeyBinding(KEYBINDINGS.SPEED_UP, speedUp);
 	useKeyBinding(KEYBINDINGS.SPEED_DOWN, speedDown);
+	useKeyBinding(KEYBINDINGS.SHUFFLE, toggleShuffle);
 
 	return (
 		<Box
@@ -91,6 +93,14 @@ export default function PlayerControls() {
 			{/* Volume */}
 			<Text color={theme.colors.text}>
 				[<Text color={theme.colors.dim}>+/-</Text>] Vol: {playerState.volume}%
+			</Text>
+
+			{/* Shuffle indicator */}
+			<Text
+				color={playerState.shuffle ? theme.colors.primary : theme.colors.dim}
+			>
+				[<Text color={theme.colors.dim}>Shift+S</Text>]{' '}
+				{playerState.shuffle ? '🔀 ON' : '🔀 OFF'}
 			</Text>
 
 			{/* Speed indicator (only shown when not 1.0x) */}

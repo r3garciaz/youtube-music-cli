@@ -57,7 +57,7 @@ export const KEYBINDINGS = {
 	VOLUME_DOWN: ['-'], // Only '-' without shift
 	VOLUME_FINE_UP: ['shift+='], // Fine-grained +1 step
 	VOLUME_FINE_DOWN: ['shift+-'], // Fine-grained -1 step
-	SHUFFLE: ['s'],
+	SHUFFLE: ['shift+s'],
 	REPEAT: ['r'],
 	SEEK_FORWARD: ['shift+right'],
 	SEEK_BACKWARD: ['shift+left'],

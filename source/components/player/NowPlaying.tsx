@@ -95,6 +95,7 @@ export default function NowPlaying() {
 				{!playerState.isPlaying && progress > 0 && (
 					<Text color={theme.colors.dim}> ⏸</Text>
 				)}
+				{playerState.shuffle && <Text color={theme.colors.primary}> 🔀</Text>}
 				{sleepRemaining !== null && (
 					<Text color={theme.colors.warning}>
 						{' '}

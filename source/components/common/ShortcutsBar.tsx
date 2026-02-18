@@ -49,7 +49,17 @@ export default function ShortcutsBar() {
 				Shortcuts: <Text color={theme.colors.text}>Space</Text> Play/Pause |{' '}
 				<Text color={theme.colors.text}>→</Text> Next |{' '}
 				<Text color={theme.colors.text}>←</Text> Prev |{' '}
-				<Text color={theme.colors.text}>Shift+P</Text> Playlists |{' '}
+				<Text
+					color={playerState.shuffle ? theme.colors.primary : theme.colors.text}
+				>
+					Shift+S
+				</Text>{' '}
+				<Text
+					color={playerState.shuffle ? theme.colors.primary : theme.colors.dim}
+				>
+					Shuffle{playerState.shuffle ? ':ON' : ''}
+				</Text>{' '}
+				| <Text color={theme.colors.text}>Shift+P</Text> Playlists |{' '}
 				<Text color={theme.colors.text}>Shift+D</Text> Download |{' '}
 				<Text color={theme.colors.text}>m</Text> Mix |{' '}
 				<Text color={theme.colors.text}>M</Text> Mini |{' '}

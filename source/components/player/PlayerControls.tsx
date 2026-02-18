@@ -67,7 +67,7 @@ export default function PlayerControls() {
 		>
 			{/* Previous */}
 			<Text color={theme.colors.text}>
-				[<Text color={theme.colors.dim}>b</Text>] Prev
+				[<Text color={theme.colors.dim}>← / b</Text>] Prev
 			</Text>
 
 			{/* Play/Pause */}
@@ -85,7 +85,7 @@ export default function PlayerControls() {
 
 			{/* Next */}
 			<Text color={theme.colors.text}>
-				[<Text color={theme.colors.dim}>n</Text>] Next
+				[<Text color={theme.colors.dim}>→ / n</Text>] Next
 			</Text>
 
 			{/* Volume */}

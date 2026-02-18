@@ -67,6 +67,7 @@ npm install -g @involvex/youtube-music-cli
 
 # Run
 youtube-music-cli
+ymc
 ```
 
 ## Navigation

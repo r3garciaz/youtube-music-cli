@@ -35,7 +35,8 @@ function SearchLayout() {
 				dispatch({category: 'SET_SELECTED_RESULT', index: 0});
 				dispatch({category: 'SET_HAS_SEARCHED', hasSearched: true});
 				// Defer focus switch to avoid consuming the same Enter key
-				setTimeout(() => setIsTyping(false), 0);
+				// Use longer delay to ensure key event has been fully processed
+				setTimeout(() => setIsTyping(false), 100);
 			}
 			setIsSearching(false);
 		},

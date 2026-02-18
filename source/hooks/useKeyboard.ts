@@ -1,6 +1,7 @@
 // Keyboard input handling hook
 import {useCallback, useEffect} from 'react';
 import {useInput} from 'ink';
+import {logger} from '../services/logger/logger.service.ts';
 
 type KeyHandler = () => void;
 type RegistryEntry = {
@@ -37,6 +38,20 @@ export function useKeyBinding(
  */
 export function KeyboardManager() {
 	useInput((input, key) => {
+		// Debug logging for key presses (helps diagnose binding issues)
+		if (input || key.ctrl || key.meta || key.shift) {
+			logger.debug('KeyboardManager', 'Key pressed', {
+				input,
+				ctrl: key.ctrl,
+				meta: key.meta,
+				shift: key.shift,
+				upArrow: key.upArrow,
+				downArrow: key.downArrow,
+				leftArrow: key.leftArrow,
+				rightArrow: key.rightArrow,
+			});
+		}
+
 		// Global quit handling
 		if (key.ctrl && input === 'c') {
 			// Exit cleanly without clearing screen (let Ink handle cleanup)
@@ -83,6 +98,11 @@ export function KeyboardManager() {
 						if (mainKey === 'down' && key.downArrow) return true;
 						if (mainKey === 'left' && key.leftArrow) return true;
 						if (mainKey === 'right' && key.rightArrow) return true;
+
+						// Handle '=' and '+' specially (+ is shift+=)
+						if (mainKey === '=' && input === '=') return true;
+						if (mainKey === '+' && input === '+') return true;
+						if (mainKey === '+' && key.shift && input === '=') return true; // shift+= produces '+'
 
 						return input.toLowerCase() === mainKey && !key.ctrl && !key.meta;
 					})();

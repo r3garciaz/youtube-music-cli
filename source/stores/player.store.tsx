@@ -88,11 +88,23 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
 		case 'SET_VOLUME':
 			return {...state, volume: Math.max(0, Math.min(100, action.volume))};
 
-		case 'VOLUME_UP':
-			return {...state, volume: Math.min(100, state.volume + 10)};
+		case 'VOLUME_UP': {
+			const newVolume = Math.min(100, state.volume + 10);
+			logger.debug('PlayerReducer', 'VOLUME_UP', {
+				oldVolume: state.volume,
+				newVolume,
+			});
+			return {...state, volume: newVolume};
+		}
 
-		case 'VOLUME_DOWN':
-			return {...state, volume: Math.max(0, state.volume - 10)};
+		case 'VOLUME_DOWN': {
+			const newVolume = Math.max(0, state.volume - 10);
+			logger.debug('PlayerReducer', 'VOLUME_DOWN', {
+				oldVolume: state.volume,
+				newVolume,
+			});
+			return {...state, volume: newVolume};
+		}
 
 		case 'TOGGLE_SHUFFLE':
 			return {...state, shuffle: !state.shuffle};
@@ -185,6 +197,7 @@ import {getConfigService} from '../services/config/config.service.ts';
 import {getMusicService} from '../services/youtube-music/api.ts';
 import {getPlayerService} from '../services/player/player.service.ts';
 import {useEffect, useRef, useMemo} from 'react';
+import {logger} from '../services/logger/logger.service.ts';
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
@@ -212,23 +225,43 @@ function PlayerManager() {
 	useEffect(() => {
 		const track = state.currentTrack;
 		if (!track) {
+			logger.debug('PlayerManager', 'No current track');
 			return;
 		}
+
+		logger.info('PlayerManager', 'Loading track', {
+			title: track.title,
+			videoId: track.videoId,
+		});
 
 		const loadAndPlayTrack = async () => {
 			dispatch({category: 'SET_LOADING', loading: true});
 
 			try {
+				logger.debug('PlayerManager', 'Fetching stream URL', {
+					videoId: track.videoId,
+				});
 				const url = await musicService.getStreamUrl(track.videoId);
 
 				if (!url) {
 					throw new Error('Failed to get stream URL');
 				}
 
+				logger.info('PlayerManager', 'Stream URL obtained, starting playback', {
+					urlLength: url.length,
+					urlPreview: url.substring(0, 50),
+				});
+
 				await playerService.play(url);
 
+				logger.info('PlayerManager', 'Playback started successfully');
 				dispatch({category: 'SET_LOADING', loading: false});
 			} catch (error) {
+				logger.error('PlayerManager', 'Failed to load track', {
+					error: error instanceof Error ? error.message : String(error),
+					stack: error instanceof Error ? error.stack : undefined,
+					track: {title: track.title, videoId: track.videoId},
+				});
 				dispatch({
 					category: 'SET_ERROR',
 					error:
@@ -287,15 +320,27 @@ export function PlayerProvider({children}: {children: ReactNode}) {
 
 	const actions = useMemo(
 		() => ({
-			play: (track: Track) => dispatch({category: 'PLAY', track}),
+			play: (track: Track) => {
+				logger.info('PlayerProvider', 'play() action dispatched', {
+					title: track.title,
+					videoId: track.videoId,
+				});
+				dispatch({category: 'PLAY', track});
+			},
 			pause: () => dispatch({category: 'PAUSE'}),
 			resume: () => dispatch({category: 'RESUME'}),
 			next: () => dispatch({category: 'NEXT'}),
 			previous: () => dispatch({category: 'PREVIOUS'}),
 			seek: (position: number) => dispatch({category: 'SEEK', position}),
 			setVolume: (volume: number) => dispatch({category: 'SET_VOLUME', volume}),
-			volumeUp: () => dispatch({category: 'VOLUME_UP'}),
-			volumeDown: () => dispatch({category: 'VOLUME_DOWN'}),
+			volumeUp: () => {
+				logger.debug('PlayerActions', 'volumeUp called');
+				dispatch({category: 'VOLUME_UP'});
+			},
+			volumeDown: () => {
+				logger.debug('PlayerActions', 'volumeDown called');
+				dispatch({category: 'VOLUME_DOWN'});
+			},
 			toggleShuffle: () => dispatch({category: 'TOGGLE_SHUFFLE'}),
 			toggleRepeat: () => dispatch({category: 'TOGGLE_REPEAT'}),
 			setQueue: (queue: Track[]) => dispatch({category: 'SET_QUEUE', queue}),

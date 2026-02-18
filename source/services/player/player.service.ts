@@ -1,17 +1,30 @@
-// Audio playback service using mpv media player
+// Audio playback service using mpv media player with IPC control
 import {spawn, type ChildProcess} from 'node:child_process';
+import {connect, type Socket} from 'node:net';
 import {logger} from '../logger/logger.service.ts';
 
 export type PlayOptions = {
 	volume?: number;
 };
 
+export type PlayerEventCallback = (event: {
+	timePos?: number;
+	duration?: number;
+	paused?: boolean;
+	eof?: boolean;
+}) => void;
+
 class PlayerService {
 	private static instance: PlayerService;
 	private mpvProcess: ChildProcess | null = null;
+	private ipcSocket: Socket | null = null;
+	private ipcPath: string | null = null;
 	private currentUrl: string | null = null;
 	private currentVolume = 70;
 	private isPlaying = false;
+	private eventCallback: PlayerEventCallback | null = null;
+	private ipcConnectRetries = 0;
+	private readonly maxIpcRetries = 10;
 
 	private constructor() {}
 
@@ -20,6 +33,183 @@ class PlayerService {
 			PlayerService.instance = new PlayerService();
 		}
 		return PlayerService.instance;
+	}
+
+	/**
+	 * Register callback for player events (time position, duration updates)
+	 */
+	onEvent(callback: PlayerEventCallback): void {
+		this.eventCallback = callback;
+	}
+
+	/**
+	 * Generate IPC socket path based on platform
+	 */
+	private getIpcPath(): string {
+		if (process.platform === 'win32') {
+			// Windows named pipe
+			return `\\\\.\\pipe\\mpvsocket-${process.pid}`;
+		} else {
+			// Unix domain socket
+			return `/tmp/mpvsocket-${process.pid}`;
+		}
+	}
+
+	/**
+	 * Connect to mpv IPC socket
+	 */
+	private async connectIpc(): Promise<void> {
+		if (!this.ipcPath) {
+			throw new Error('IPC path not set');
+		}
+
+		return new Promise<void>((resolve, reject) => {
+			const attemptConnect = () => {
+				logger.debug('PlayerService', 'Attempting IPC connection', {
+					path: this.ipcPath,
+					attempt: this.ipcConnectRetries + 1,
+				});
+
+				this.ipcSocket = connect(this.ipcPath!);
+
+				this.ipcSocket.on('connect', () => {
+					logger.info('PlayerService', 'IPC socket connected');
+					this.ipcConnectRetries = 0;
+
+					// Request property observations
+					this.sendIpcCommand(['observe_property', 1, 'time-pos']);
+					this.sendIpcCommand(['observe_property', 2, 'duration']);
+					this.sendIpcCommand(['observe_property', 3, 'pause']);
+					this.sendIpcCommand(['observe_property', 4, 'eof-reached']);
+
+					resolve();
+				});
+
+				this.ipcSocket.on('data', (data: Buffer) => {
+					this.handleIpcMessage(data.toString());
+				});
+
+				this.ipcSocket.on('error', (err: Error) => {
+					logger.debug('PlayerService', 'IPC socket error', {
+						error: err.message,
+						attempt: this.ipcConnectRetries + 1,
+					});
+
+					if (this.ipcConnectRetries < this.maxIpcRetries) {
+						this.ipcConnectRetries++;
+						setTimeout(attemptConnect, 100); // Retry after 100ms
+					} else {
+						reject(
+							new Error(
+								`Failed to connect to IPC socket after ${this.maxIpcRetries} attempts`,
+							),
+						);
+					}
+				});
+
+				this.ipcSocket.on('close', () => {
+					logger.debug('PlayerService', 'IPC socket closed');
+					this.ipcSocket = null;
+				});
+			};
+
+			attemptConnect();
+		});
+	}
+
+	/**
+	 * Send command to mpv via IPC
+	 */
+	private sendIpcCommand(command: unknown[]): void {
+		if (!this.ipcSocket || this.ipcSocket.destroyed) {
+			logger.warn(
+				'PlayerService',
+				'Cannot send IPC command: socket not connected',
+			);
+			return;
+		}
+
+		const message = JSON.stringify({command}) + '\n';
+		this.ipcSocket.write(message);
+
+		logger.debug('PlayerService', 'Sent IPC command', {
+			command: command[0],
+		});
+	}
+
+	/**
+	 * Handle IPC message from mpv
+	 */
+	private handleIpcMessage(data: string): void {
+		const lines = data.trim().split('\n');
+
+		for (const line of lines) {
+			try {
+				const message = JSON.parse(line);
+
+				if (message.event === 'property-change') {
+					this.handlePropertyChange(message);
+				} else if (message.error !== 'success' && message.error) {
+					logger.warn('PlayerService', 'IPC error response', {
+						error: message.error,
+					});
+				}
+			} catch (err) {
+				logger.debug('PlayerService', 'Failed to parse IPC message', {
+					data: line,
+					error: err instanceof Error ? err.message : String(err),
+				});
+			}
+		}
+	}
+
+	/**
+	 * Handle property change events from mpv
+	 */
+	private handlePropertyChange(message: {
+		name: string;
+		data: number | boolean;
+	}): void {
+		if (!this.eventCallback) return;
+
+		const event: {
+			timePos?: number;
+			duration?: number;
+			paused?: boolean;
+			eof?: boolean;
+		} = {};
+
+		switch (message.name) {
+			case 'time-pos':
+				event.timePos = message.data as number;
+				logger.debug('PlayerService', 'Time position updated', {
+					timePos: event.timePos,
+				});
+				break;
+
+			case 'duration':
+				event.duration = message.data as number;
+				logger.debug('PlayerService', 'Duration updated', {
+					duration: event.duration,
+				});
+				break;
+
+			case 'pause':
+				event.paused = message.data as boolean;
+				logger.debug('PlayerService', 'Pause state changed', {
+					paused: event.paused,
+				});
+				break;
+
+			case 'eof-reached':
+				event.eof = message.data as boolean;
+				if (event.eof) {
+					logger.info('PlayerService', 'End of file reached');
+				}
+				break;
+		}
+
+		this.eventCallback(event);
 	}
 
 	async play(url: string, options?: PlayOptions): Promise<void> {
@@ -43,11 +233,15 @@ class PlayerService {
 			playUrl = `https://www.youtube.com/watch?v=${url}`;
 		}
 
+		// Generate IPC socket path
+		this.ipcPath = this.getIpcPath();
+
 		return new Promise<void>((resolve, reject) => {
 			try {
-				logger.debug('PlayerService', 'Spawning mpv process', {
+				logger.debug('PlayerService', 'Spawning mpv process with IPC', {
 					url: playUrl,
 					volume: this.currentVolume,
+					ipcPath: this.ipcPath,
 				});
 
 				// Spawn mpv with JSON IPC for better control
@@ -58,6 +252,8 @@ class PlayerService {
 					'--no-audio-display', // Don't show album art in terminal
 					'--really-quiet', // Minimal output
 					'--msg-level=all=error', // Only show errors
+					`--input-ipc-server=${this.ipcPath}`, // Enable IPC
+					'--idle=yes', // Keep mpv running after playback ends
 					playUrl,
 				]);
 
@@ -66,6 +262,16 @@ class PlayerService {
 				}
 
 				this.isPlaying = true;
+
+				// Connect to IPC socket after a short delay (let mpv start)
+				setTimeout(() => {
+					void this.connectIpc().catch(error => {
+						logger.warn('PlayerService', 'Failed to connect IPC', {
+							error: error.message,
+						});
+						// Continue without IPC - basic playback will still work
+					});
+				}, 200);
 
 				// Handle stdout (should be minimal with --really-quiet)
 				this.mpvProcess.stdout.on('data', (data: Buffer) => {
@@ -128,21 +334,29 @@ class PlayerService {
 
 	pause(): void {
 		logger.debug('PlayerService', 'pause() called');
-		if (this.mpvProcess && this.isPlaying) {
-			// For now, just stop (we can add pause/resume via IPC later)
-			this.stop();
+		if (this.ipcSocket && !this.ipcSocket.destroyed) {
+			this.sendIpcCommand(['set_property', 'pause', true]);
 		}
 	}
 
-	resume(url: string): void {
-		logger.debug('PlayerService', 'resume() called', {url});
-		if (!this.isPlaying && this.currentUrl) {
+	resume(): void {
+		logger.debug('PlayerService', 'resume() called');
+		if (this.ipcSocket && !this.ipcSocket.destroyed) {
+			this.sendIpcCommand(['set_property', 'pause', false]);
+		} else if (!this.isPlaying && this.currentUrl) {
 			void this.play(this.currentUrl);
 		}
 	}
 
 	stop(): void {
 		logger.debug('PlayerService', 'stop() called');
+
+		// Close IPC socket
+		if (this.ipcSocket && !this.ipcSocket.destroyed) {
+			this.ipcSocket.destroy();
+			this.ipcSocket = null;
+		}
+
 		if (this.mpvProcess) {
 			try {
 				this.mpvProcess.kill('SIGTERM');
@@ -155,6 +369,9 @@ class PlayerService {
 				});
 			}
 		}
+
+		this.ipcPath = null;
+		this.ipcConnectRetries = 0;
 	}
 
 	setVolume(volume: number): void {
@@ -164,9 +381,10 @@ class PlayerService {
 		});
 		this.currentVolume = Math.max(0, Math.min(100, volume));
 
-		// If mpv is running, we'd need IPC to change volume dynamically
-		// For now, volume only applies to next track
-		// TODO: Implement IPC for runtime volume control
+		// Update mpv volume via IPC if connected
+		if (this.ipcSocket && !this.ipcSocket.destroyed) {
+			this.sendIpcCommand(['set_property', 'volume', this.currentVolume]);
+		}
 	}
 
 	getVolume(): number {

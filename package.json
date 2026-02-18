@@ -20,6 +20,7 @@
 		"bun:build": "bun build source/cli.tsx --outfile dist/index.js --target node",
 		"compile": "bun build --compile source/cli.tsx --outfile dist/youtube-music-cli.exe",
 		"dev": "bun run --bun source/cli.tsx",
+		"dev:watch": "bun run --bun --watch source/cli.tsx",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"lint": "eslint . --ext .js,.jsx,.ts,.tsx --ignore-pattern dist",

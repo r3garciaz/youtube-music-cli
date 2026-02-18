@@ -18,6 +18,7 @@ import type {
 	ClearQueueAction,
 	SetQueuePositionAction,
 	UpdateProgressAction,
+	SetDurationAction,
 	TickAction,
 	SetLoadingAction,
 	SetErrorAction,
@@ -58,6 +59,7 @@ export type PlayerAction =
 	| ClearQueueAction
 	| SetQueuePositionAction
 	| UpdateProgressAction
+	| SetDurationAction
 	| TickAction
 	| SetLoadingAction
 	| SetErrorAction;

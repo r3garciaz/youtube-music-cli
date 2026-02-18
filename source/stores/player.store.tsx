@@ -174,6 +174,9 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
 		case 'UPDATE_PROGRESS':
 			return {...state, progress: action.progress};
 
+		case 'SET_DURATION':
+			return {...state, duration: action.duration};
+
 		case 'TICK':
 			if (state.isPlaying) {
 				return {...state, progress: state.progress + 1};
@@ -225,6 +228,32 @@ function PlayerManager() {
 	const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	const musicService = getMusicService();
 	const playerService = getPlayerService();
+
+	// Register event handler for mpv IPC events
+	useEffect(() => {
+		playerService.onEvent(event => {
+			if (event.duration !== undefined) {
+				dispatch({category: 'SET_DURATION', duration: event.duration});
+			}
+
+			if (event.timePos !== undefined) {
+				dispatch({category: 'UPDATE_PROGRESS', progress: event.timePos});
+			}
+
+			if (event.paused !== undefined) {
+				if (event.paused) {
+					dispatch({category: 'PAUSE'});
+				} else {
+					dispatch({category: 'RESUME'});
+				}
+			}
+
+			if (event.eof) {
+				// Track ended, play next
+				next();
+			}
+		});
+	}, [playerService, dispatch, next]);
 
 	// Initialize audio on mount
 	useEffect(() => {

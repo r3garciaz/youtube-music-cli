@@ -81,6 +81,11 @@ export interface UpdateProgressAction {
 	progress: number;
 }
 
+export interface SetDurationAction {
+	readonly category: 'SET_DURATION';
+	duration: number;
+}
+
 export interface TickAction {
 	readonly category: 'TICK';
 }

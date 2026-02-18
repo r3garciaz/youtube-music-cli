@@ -1,3 +1,13 @@
+## [0.0.15](https://github.com/involvex/youtube-music-cli/compare/v0.0.14...v0.0.15) (2026-02-18)
+
+### Features
+
+- **ui:** remove escape key from quit keybinding ([df6e794](https://github.com/involvex/youtube-music-cli/commit/df6e794583aa96a1dd27b1ff208f3f1b69249829))
+
+### BREAKING CHANGES
+
+- **ui:** 'escape' no longer quits; use 'q' instead.
+
 ## [0.0.14](https://github.com/involvex/youtube-music-cli/compare/v0.0.13...v0.0.14) (2026-02-18)
 
 ### Features

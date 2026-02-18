@@ -12,12 +12,7 @@ export default function NowPlaying() {
 
 	if (!playerState.currentTrack) {
 		return (
-			<Box
-				borderStyle="round"
-				borderColor={theme.colors.dim}
-				padding={1}
-				marginY={1}
-			>
+			<Box borderStyle="round" borderColor={theme.colors.dim} paddingX={1}>
 				<Text color={theme.colors.dim}>No track playing</Text>
 			</Box>
 		);
@@ -27,74 +22,61 @@ export default function NowPlaying() {
 	const artists =
 		track.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
 
+	// Clamp progress to valid range
+	const progress = Math.max(
+		0,
+		Math.min(playerState.progress, playerState.duration || 0),
+	);
+	const duration = playerState.duration || 0;
+	const percentage =
+		duration > 0 ? Math.min(100, Math.floor((progress / duration) * 100)) : 0;
+	const barWidth = Math.max(10, columns - 8);
+	const filledWidth =
+		duration > 0 ? Math.floor((progress / duration) * barWidth) : 0;
+
 	return (
 		<Box
 			flexDirection="column"
 			borderStyle="round"
 			borderColor={theme.colors.primary}
-			padding={1}
-			marginY={1}
+			paddingX={1}
 		>
-			{/* Title */}
-			<Text bold color={theme.colors.primary}>
-				{track.title}
-			</Text>
-
-			{/* Artist */}
-			<Text color={theme.colors.secondary}>{artists}</Text>
+			{/* Title & Artist on same line if space allows */}
+			<Box>
+				<Text bold color={theme.colors.primary}>
+					{track.title}
+				</Text>
+				<Text color={theme.colors.dim}> • </Text>
+				<Text color={theme.colors.secondary}>{artists}</Text>
+			</Box>
 
 			{/* Album */}
 			{track.album && <Text color={theme.colors.dim}>{track.album.name}</Text>}
 
 			{/* Progress Bar */}
-			<Box marginTop={1}>
-				<Text color={theme.colors.text}>
-					{formatTime(playerState.progress)}
+			<Box>
+				<Text color={theme.colors.primary}>
+					{'█'.repeat(Math.min(filledWidth, barWidth))}
 				</Text>
-				<Text> </Text>
 				<Text color={theme.colors.dim}>
-					[
-					{Math.round(
-						(playerState.progress / (playerState.duration || 1)) * 100,
-					)}
-					%]
-				</Text>
-				<Text> </Text>
-				<Text color={theme.colors.text}>
-					{formatTime(playerState.duration)}
+					{'░'.repeat(Math.max(0, barWidth - filledWidth))}
 				</Text>
 			</Box>
 
-			{/* Visual Progress */}
-			{playerState.duration > 0 && (
-				<Box>
-					<Text color={theme.colors.primary}>
-						{'■'.repeat(
-							Math.floor(
-								(playerState.progress / playerState.duration) * (columns - 10),
-							),
-						)}
-					</Text>
-					<Text color={theme.colors.dim}>
-						{'-'.repeat(
-							Math.max(
-								0,
-								columns -
-									10 -
-									Math.floor(
-										(playerState.progress / playerState.duration) *
-											(columns - 10),
-									),
-							),
-						)}
-					</Text>
-				</Box>
-			)}
+			{/* Time display */}
+			<Box>
+				<Text color={theme.colors.text}>{formatTime(progress)}</Text>
+				<Text color={theme.colors.dim}> / {formatTime(duration)} </Text>
+				<Text color={theme.colors.dim}>[{percentage}%]</Text>
+				{playerState.isLoading && (
+					<Text color={theme.colors.accent}> Loading...</Text>
+				)}
+				{!playerState.isPlaying && progress > 0 && (
+					<Text color={theme.colors.dim}> ⏸</Text>
+				)}
+			</Box>
 
-			{/* Loading / Error */}
-			{playerState.isLoading && (
-				<Text color={theme.colors.accent}>Loading...</Text>
-			)}
+			{/* Error */}
 			{playerState.error && (
 				<Text color={theme.colors.error}>{playerState.error}</Text>
 			)}

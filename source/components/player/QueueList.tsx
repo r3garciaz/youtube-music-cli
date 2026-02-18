@@ -20,60 +20,41 @@ function QueueList() {
 	};
 
 	if (playerState.queue.length === 0) {
-		return (
-			<Box paddingX={1}>
-				<Text color={theme.colors.dim}>Queue is empty</Text>
-			</Box>
-		);
+		return null;
+	}
+
+	// Show only next 5 tracks
+	const visibleQueue = playerState.queue.slice(
+		playerState.queuePosition + 1,
+		playerState.queuePosition + 6,
+	);
+
+	if (visibleQueue.length === 0) {
+		return null;
 	}
 
 	return (
-		<Box flexDirection="column" gap={1}>
-			{/* Header */}
-			<Box
-				borderStyle="double"
-				borderColor={theme.colors.secondary}
-				paddingX={1}
-				marginBottom={1}
-			>
-				<Text bold color={theme.colors.primary}>
-					Queue ({playerState.queue.length} tracks)
-				</Text>
-			</Box>
+		<Box flexDirection="column">
+			<Text color={theme.colors.dim}>
+				Up next ({playerState.queue.length - playerState.queuePosition - 1}{' '}
+				tracks)
+			</Text>
+			{visibleQueue.map((track, idx) => {
+				const index = playerState.queuePosition + 1 + idx;
+				const isSelected = index === selectedIndex;
+				const artists = track.artists?.map(a => a.name).join(', ') || 'Unknown';
+				const title = truncate(track.title, getTruncateLength(40));
 
-			{/* Queue Items */}
-			{playerState.queue.map(
-				(
-					track: import('../../types/youtube-music.types.ts').Track,
-					index: number,
-				) => {
-					const isSelected = index === selectedIndex;
-					const artists =
-						track.artists?.map(a => a.name).join(', ') || 'Unknown';
-					const title = truncate(track.title, getTruncateLength(50));
-
-					return (
-						<Box
-							key={track.videoId}
-							paddingX={1}
-							borderStyle={isSelected ? 'double' : undefined}
-							borderColor={isSelected ? theme.colors.primary : undefined}
-						>
-							<Text color={theme.colors.dim}>{index + 1}.</Text>
-							<Text
-								color={isSelected ? theme.colors.primary : theme.colors.text}
-								bold={isSelected}
-							>
-								{title}
-							</Text>
-							<Text color={theme.colors.dim}>
-								{' - '}
-								{artists}
-							</Text>
-						</Box>
-					);
-				},
-			)}
+				return (
+					<Box key={track.videoId}>
+						<Text color={theme.colors.dim}>{index + 1}. </Text>
+						<Text color={isSelected ? theme.colors.primary : theme.colors.text}>
+							{title}
+						</Text>
+						<Text color={theme.colors.dim}> • {artists}</Text>
+					</Box>
+				);
+			})}
 		</Box>
 	);
 }

@@ -143,7 +143,8 @@ class PluginInstallerService {
 				});
 			}
 
-			const pluginSourceDir = join(tempDir, 'plugins', pluginName);
+			// Plugin is at root of repo (e.g., adblock/, lyrics/, etc.)
+			const pluginSourceDir = join(tempDir, pluginName);
 			if (!existsSync(pluginSourceDir)) {
 				rmSync(tempDir, {recursive: true, force: true});
 				return {

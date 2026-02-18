@@ -172,14 +172,24 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
 			return state;
 
 		case 'UPDATE_PROGRESS':
-			return {...state, progress: action.progress};
+			// Clamp progress to valid range
+			const clampedProgress = Math.max(
+				0,
+				Math.min(action.progress, state.duration || action.progress),
+			);
+			return {...state, progress: clampedProgress};
 
 		case 'SET_DURATION':
 			return {...state, duration: action.duration};
 
 		case 'TICK':
-			if (state.isPlaying) {
-				return {...state, progress: state.progress + 1};
+			if (state.isPlaying && state.duration > 0) {
+				const newProgress = state.progress + 1;
+				// Don't exceed duration
+				if (newProgress >= state.duration) {
+					return {...state, progress: state.duration, isPlaying: false};
+				}
+				return {...state, progress: newProgress};
 			}
 			return state;
 

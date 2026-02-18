@@ -3,21 +3,61 @@ layout: default
 title: Home
 ---
 
-# youtube-music-cli
-
-A powerful Terminal User Interface (TUI) music player for YouTube Music, built with React and Ink.
+<div class="hero">
+  <h1>🎵 youtube-music-cli</h1>
+  <p>A powerful Terminal User Interface (TUI) music player for YouTube Music</p>
+  <div class="hero-buttons">
+    <a href="{{ '/getting-started' | relative_url }}" class="btn btn-primary">Get Started</a>
+    <a href="https://github.com/involvex/youtube-music-cli" class="btn btn-secondary">View on GitHub</a>
+  </div>
+</div>
 
 ## Features
 
-- 🎨 **Beautiful TUI** - Rich terminal interface with multiple themes
-- 🔍 **Search** - Find songs, albums, artists, and playlists
-- 📋 **Queue Management** - Build and manage your playback queue
-- 🔀 **Shuffle & Repeat** - Multiple playback modes
-- 🎚️ **Volume Control** - Fine-grained volume adjustment
-- 💡 **Smart Suggestions** - Discover related tracks
-- 🔌 **Plugin System** - Extend functionality with plugins
-- ⌨️ **Keyboard-Driven** - Efficient vim-style navigation
-- 🖥️ **Headless Mode** - Run without TUI for scripting
+<div class="features">
+  <div class="feature">
+    <span class="feature-icon">🎨</span>
+    <div>
+      <h3>Beautiful TUI</h3>
+      <p>Rich terminal interface with multiple themes (Dark, Light, Midnight, Matrix)</p>
+    </div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">🔍</span>
+    <div>
+      <h3>Powerful Search</h3>
+      <p>Find songs, albums, artists, and playlists instantly</p>
+    </div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">📋</span>
+    <div>
+      <h3>Queue Management</h3>
+      <p>Build and manage your playback queue with ease</p>
+    </div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">🔀</span>
+    <div>
+      <h3>Shuffle & Repeat</h3>
+      <p>Multiple playback modes to suit your listening style</p>
+    </div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">🔌</span>
+    <div>
+      <h3>Plugin System</h3>
+      <p>Extend functionality with plugins like adblock, lyrics, and more</p>
+    </div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">⌨️</span>
+    <div>
+      <h3>Keyboard-Driven</h3>
+      <p>Efficient vim-style navigation for power users</p>
+    </div>
+  </div>
+</div>
 
 ## Quick Start
 
@@ -31,21 +71,35 @@ youtube-music-cli
 
 ## Navigation
 
-- [Getting Started](./getting-started) - Installation and first steps
-- [Configuration](./configuration) - Customize your experience
-- [Keyboard Shortcuts](./keyboard-shortcuts) - Full shortcuts reference
-- [Plugin API](./PLUGIN_API) - Build your own plugins
-- [Plugin Development](./PLUGIN_DEVELOPMENT) - Step-by-step guide
-- [Architecture](./architecture) - Technical overview
+<div class="card-grid">
+  <a href="{{ '/getting-started' | relative_url }}" class="card">
+    <h3>📖 Getting Started</h3>
+    <p>Installation and first steps</p>
+  </a>
+  <a href="{{ '/configuration' | relative_url }}" class="card">
+    <h3>⚙️ Configuration</h3>
+    <p>Customize your experience</p>
+  </a>
+  <a href="{{ '/keyboard-shortcuts' | relative_url }}" class="card">
+    <h3>⌨️ Keyboard Shortcuts</h3>
+    <p>Full shortcuts reference</p>
+  </a>
+  <a href="{{ '/PLUGIN_API' | relative_url }}" class="card">
+    <h3>🔌 Plugin API</h3>
+    <p>Build your own plugins</p>
+  </a>
+  <a href="{{ '/PLUGIN_DEVELOPMENT' | relative_url }}" class="card">
+    <h3>🛠️ Plugin Development</h3>
+    <p>Step-by-step guide</p>
+  </a>
+  <a href="{{ '/architecture' | relative_url }}" class="card">
+    <h3>🏗️ Architecture</h3>
+    <p>Technical overview</p>
+  </a>
+</div>
 
 ## Requirements
 
 - Node.js 18+
 - [mpv](https://mpv.io/) - Media player
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube audio extraction
-
-## Links
-
-- [GitHub Repository](https://github.com/involvex/youtube-music-cli)
-- [npm Package](https://www.npmjs.com/package/@involvex/youtube-music-cli)
-- [Report Issues](https://github.com/involvex/youtube-music-cli/issues)

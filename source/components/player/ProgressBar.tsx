@@ -12,24 +12,25 @@ export default function ProgressBar() {
 		return null;
 	}
 
-	const progress = playerState.progress;
+	// Clamp values to valid range
+	const progress = Math.max(
+		0,
+		Math.min(playerState.progress, playerState.duration),
+	);
 	const duration = playerState.duration;
-	const percentage = duration > 0 ? Math.floor((progress / duration) * 100) : 0;
-	const barWidth = Math.max(0, Math.min(20, Math.floor(percentage / 5))); // 20 chars max, bounds checked
+	const percentage =
+		duration > 0 ? Math.min(100, Math.floor((progress / duration) * 100)) : 0;
+	const barWidth = Math.min(20, Math.floor(percentage / 5));
 
 	return (
-		<Box flexDirection="column" marginTop={1}>
-			<Box>
-				<Text color={theme.colors.text}>
-					{formatTime(progress)} / {formatTime(duration)}
-				</Text>
-				<Text color={theme.colors.dim}> {percentage}%</Text>
-			</Box>
-
-			<Box>
-				<Text color={theme.colors.primary}>{'■'.repeat(barWidth)}</Text>
-				<Text color={theme.colors.dim}>{'-'.repeat(20 - barWidth)}</Text>
-			</Box>
+		<Box>
+			<Text color={theme.colors.text}>{formatTime(progress)}</Text>
+			<Text color={theme.colors.dim}>/</Text>
+			<Text color={theme.colors.text}>{formatTime(duration)}</Text>
+			<Text> </Text>
+			<Text color={theme.colors.primary}>{'█'.repeat(barWidth)}</Text>
+			<Text color={theme.colors.dim}>{'░'.repeat(20 - barWidth)}</Text>
+			<Text color={theme.colors.dim}> {percentage}%</Text>
 		</Box>
 	);
 }

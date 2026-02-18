@@ -518,10 +518,17 @@ function PlayerManager() {
 
 	// Handle play/pause state
 	useEffect(() => {
-		if (!state.isPlaying) {
+		if (state.isPlaying) {
+			// Resume only if the same track is already loaded in the player service.
+			// If the track changed, the "handle track changes" effect will call play().
+			const currentTrackId = playerService.getCurrentTrackId?.() ?? '';
+			if (currentTrackId && state.currentTrack?.videoId === currentTrackId) {
+				playerService.resume();
+			}
+		} else {
 			playerService.pause();
 		}
-	}, [state.isPlaying, playerService]);
+	}, [state.isPlaying, state.currentTrack, playerService]);
 
 	// Handle volume changes
 	useEffect(() => {

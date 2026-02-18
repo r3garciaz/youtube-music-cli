@@ -28,6 +28,7 @@ class PlayerService {
 	private ipcConnectRetries = 0;
 	private readonly maxIpcRetries = 10;
 	private currentTrackId: string | null = null; // Track currently playing
+	private playSessionId = 0; // Incremented per play() call for unique IPC paths
 
 	private constructor() {}
 
@@ -50,15 +51,15 @@ class PlayerService {
 	}
 
 	/**
-	 * Generate IPC socket path based on platform
+	 * Generate IPC socket path based on platform, unique per play session
 	 */
 	private getIpcPath(): string {
 		if (process.platform === 'win32') {
 			// Windows named pipe
-			return `\\\\.\\pipe\\mpvsocket-${process.pid}`;
+			return `\\\\.\\pipe\\mpvsocket-${process.pid}-${this.playSessionId}`;
 		} else {
 			// Unix domain socket
-			return `/tmp/mpvsocket-${process.pid}`;
+			return `/tmp/mpvsocket-${process.pid}-${this.playSessionId}`;
 		}
 	}
 
@@ -258,6 +259,9 @@ class PlayerService {
 			playUrl = `https://www.youtube.com/watch?v=${url}`;
 		}
 
+		// Increment session ID for a unique IPC socket path per play call
+		this.playSessionId++;
+
 		// Generate IPC socket path
 		this.ipcPath = this.getIpcPath();
 
@@ -294,9 +298,12 @@ class PlayerService {
 
 				mpvArgs.push(playUrl);
 
-				this.mpvProcess = spawn('mpv', mpvArgs);
+				// Capture process in local var so stale exit handlers from a killed
+				// process don't overwrite state belonging to a newly-spawned process.
+				const spawnedProcess = spawn('mpv', mpvArgs);
+				this.mpvProcess = spawnedProcess;
 
-				if (!this.mpvProcess.stdout || !this.mpvProcess.stderr) {
+				if (!spawnedProcess.stdout || !spawnedProcess.stderr) {
 					throw new Error('Failed to create mpv process streams');
 				}
 
@@ -313,30 +320,33 @@ class PlayerService {
 				}, 200);
 
 				// Handle stdout (should be minimal with --really-quiet)
-				this.mpvProcess.stdout.on('data', (data: Buffer) => {
+				spawnedProcess.stdout.on('data', (data: Buffer) => {
 					logger.debug('PlayerService', 'mpv stdout', {
 						output: data.toString().trim(),
 					});
 				});
 
 				// Handle stderr (errors)
-				this.mpvProcess.stderr.on('data', (data: Buffer) => {
+				spawnedProcess.stderr.on('data', (data: Buffer) => {
 					const error = data.toString().trim();
 					if (error) {
 						logger.error('PlayerService', 'mpv stderr', {error});
 					}
 				});
 
-				// Handle process exit
-				this.mpvProcess.on('exit', (code, signal) => {
+				// Handle process exit — guard against stale handlers from killed processes
+				spawnedProcess.on('exit', (code, signal) => {
 					logger.info('PlayerService', 'mpv process exited', {
 						code,
 						signal,
 						wasPlaying: this.isPlaying,
 					});
 
-					this.isPlaying = false;
-					this.mpvProcess = null;
+					// Only update shared state if this is still the active process
+					if (this.mpvProcess === spawnedProcess) {
+						this.isPlaying = false;
+						this.mpvProcess = null;
+					}
 
 					if (code === 0) {
 						// Normal exit (track finished)
@@ -348,14 +358,17 @@ class PlayerService {
 					// If killed by signal, don't reject (user stopped it)
 				});
 
-				// Handle errors
-				this.mpvProcess.on('error', (error: Error) => {
+				// Handle errors — same guard
+				spawnedProcess.on('error', (error: Error) => {
 					logger.error('PlayerService', 'mpv process error', {
 						error: error.message,
 						stack: error.stack,
 					});
-					this.isPlaying = false;
-					this.mpvProcess = null;
+					if (this.mpvProcess === spawnedProcess) {
+						this.isPlaying = false;
+						this.mpvProcess = null;
+					}
+
 					reject(error);
 				});
 

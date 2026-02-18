@@ -25,6 +25,7 @@ class PlayerService {
 	private eventCallback: PlayerEventCallback | null = null;
 	private ipcConnectRetries = 0;
 	private readonly maxIpcRetries = 10;
+	private currentTrackId: string | null = null; // Track currently playing
 
 	private constructor() {}
 
@@ -33,6 +34,10 @@ class PlayerService {
 			PlayerService.instance = new PlayerService();
 		}
 		return PlayerService.instance;
+	}
+
+	getCurrentTrackId(): string | null {
+		return this.currentTrackId;
 	}
 
 	/**
@@ -219,6 +224,24 @@ class PlayerService {
 			volume: options?.volume || this.currentVolume,
 		});
 
+		// Extract videoId from URL
+		const videoIdMatch = url.match(/[?&]v=([^&]+)/);
+		const videoId = videoIdMatch ? videoIdMatch[1] : null;
+
+		// Guard: Don't spawn if same track already playing
+		if (this.currentTrackId === videoId && this.mpvProcess && this.isPlaying) {
+			logger.info(
+				'PlayerService',
+				'Same track already playing, skipping spawn',
+				{
+					videoId,
+				},
+			);
+			return;
+		}
+
+		this.currentTrackId = videoId || null;
+
 		// Stop any existing playback
 		this.stop();
 
@@ -370,6 +393,7 @@ class PlayerService {
 				this.mpvProcess.kill('SIGTERM');
 				this.mpvProcess = null;
 				this.isPlaying = false;
+				this.currentTrackId = null; // Clear track ID on stop
 				logger.info('PlayerService', 'mpv process killed');
 			} catch (error) {
 				logger.error('PlayerService', 'Error killing mpv process', {

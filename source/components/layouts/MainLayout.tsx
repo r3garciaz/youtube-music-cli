@@ -10,7 +10,7 @@ import SearchLayout from './SearchLayout.tsx';
 import PlayerLayout from './PlayerLayout.tsx';
 import Suggestions from '../player/Suggestions.tsx';
 import Settings from '../settings/Settings.tsx';
-import PlayerControls from '../player/PlayerControls.tsx';
+import ShortcutsBar from '../common/ShortcutsBar.tsx';
 import {KEYBINDINGS, VIEW} from '../../utils/constants.ts';
 import {Box} from 'ink';
 import {useTerminalSize} from '../../hooks/useTerminalSize.ts';
@@ -93,10 +93,10 @@ function MainLayout() {
 			borderStyle="single"
 			borderColor={theme.colors.primary}
 		>
-			{/* Global player controls - always mounted for key bindings */}
-			<PlayerControls />
-
 			{currentView}
+
+			{/* Shortcuts bar at bottom - shows context-relevant shortcuts */}
+			<ShortcutsBar />
 		</Box>
 	);
 }

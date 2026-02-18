@@ -311,6 +311,15 @@ function PlayerManager() {
 			return;
 		}
 
+		// Guard: Only play if track actually changed
+		const currentTrackId = playerService.getCurrentTrackId?.() || '';
+		if (currentTrackId === track.videoId) {
+			logger.debug('PlayerManager', 'Track already playing, skipping', {
+				videoId: track.videoId,
+			});
+			return;
+		}
+
 		logger.info('PlayerManager', 'Loading track', {
 			title: track.title,
 			videoId: track.videoId,
@@ -519,12 +528,10 @@ export function PlayerProvider({children}: {children: ReactNode}) {
 			seek: (position: number) => dispatch({category: 'SEEK', position}),
 			setVolume: (volume: number) => dispatch({category: 'SET_VOLUME', volume}),
 			volumeUp: () => {
-				process.stderr.write('[PlayerActions] volumeUp() called\n');
 				logger.debug('PlayerActions', 'volumeUp called');
 				dispatch({category: 'VOLUME_UP'});
 			},
 			volumeDown: () => {
-				process.stderr.write('[PlayerActions] volumeDown() called\n');
 				logger.debug('PlayerActions', 'volumeDown called');
 				dispatch({category: 'VOLUME_DOWN'});
 			},

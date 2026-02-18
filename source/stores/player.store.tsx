@@ -189,6 +189,23 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
 		case 'SET_ERROR':
 			return {...state, error: action.error, isLoading: false};
 
+		case 'RESTORE_STATE':
+			logger.info('PlayerReducer', 'RESTORE_STATE', {
+				hasTrack: !!action.currentTrack,
+				queueLength: action.queue.length,
+			});
+			return {
+				...state,
+				currentTrack: action.currentTrack,
+				queue: action.queue,
+				queuePosition: action.queuePosition,
+				progress: action.progress,
+				volume: action.volume,
+				shuffle: action.shuffle,
+				repeat: action.repeat,
+				isPlaying: false, // Don't auto-play restored state
+			};
+
 		default:
 			return state;
 	}
@@ -274,6 +291,15 @@ function PlayerManager() {
 		const track = state.currentTrack;
 		if (!track) {
 			logger.debug('PlayerManager', 'No current track');
+			return;
+		}
+
+		// Guard: Don't auto-play during initial state restoration
+		if (!state.isPlaying) {
+			logger.info('PlayerManager', 'Skipping auto-play (not playing)', {
+				title: track.title,
+				isPlaying: state.isPlaying,
+			});
 			return;
 		}
 
@@ -376,36 +402,20 @@ export function PlayerProvider({children}: {children: ReactNode}) {
 					progress: persistedState.progress,
 				});
 
-				// Restore state
-				if (persistedState.currentTrack) {
-					dispatch({category: 'PLAY', track: persistedState.currentTrack});
-					// Restore progress after track is loaded
-					dispatch({category: 'SEEK', position: persistedState.progress});
-				}
-
-				if (persistedState.queue.length > 0) {
-					dispatch({category: 'SET_QUEUE', queue: persistedState.queue});
-					dispatch({
-						category: 'SET_QUEUE_POSITION',
-						position: persistedState.queuePosition,
-					});
-				}
-
-				dispatch({category: 'SET_VOLUME', volume: persistedState.volume});
-
-				if (persistedState.shuffle) {
-					dispatch({category: 'TOGGLE_SHUFFLE'});
-				}
-
-				if (persistedState.repeat !== 'off') {
-					// Toggle once for 'all', twice for 'one'
-					dispatch({category: 'TOGGLE_REPEAT'});
-					if (persistedState.repeat === 'one') {
-						dispatch({category: 'TOGGLE_REPEAT'});
-					}
-				}
-
+				// Mark as initialized BEFORE dispatch to prevent re-triggers
 				isInitializedRef.current = true;
+
+				// Restore all state atomically with single dispatch
+				dispatch({
+					category: 'RESTORE_STATE',
+					currentTrack: persistedState.currentTrack,
+					queue: persistedState.queue,
+					queuePosition: persistedState.queuePosition,
+					progress: persistedState.progress,
+					volume: persistedState.volume,
+					shuffle: persistedState.shuffle,
+					repeat: persistedState.repeat,
+				});
 			}
 		});
 	}, []);

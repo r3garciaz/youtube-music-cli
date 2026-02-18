@@ -100,6 +100,17 @@ export interface SetErrorAction {
 	error: string | null;
 }
 
+export interface RestoreStateAction {
+	readonly category: 'RESTORE_STATE';
+	currentTrack: Track | null;
+	queue: Track[];
+	queuePosition: number;
+	progress: number;
+	volume: number;
+	shuffle: boolean;
+	repeat: 'off' | 'all' | 'one';
+}
+
 // Navigation actions
 export interface NavigateAction {
 	readonly category: 'NAVIGATE';

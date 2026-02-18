@@ -22,6 +22,7 @@ import type {
 	TickAction,
 	SetLoadingAction,
 	SetErrorAction,
+	RestoreStateAction,
 } from './actions.ts';
 
 import type {Track} from './youtube-music.types.ts';
@@ -62,4 +63,5 @@ export type PlayerAction =
 	| SetDurationAction
 	| TickAction
 	| SetLoadingAction
-	| SetErrorAction;
+	| SetErrorAction
+	| RestoreStateAction;

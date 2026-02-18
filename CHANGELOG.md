@@ -1,3 +1,15 @@
+## [0.0.13](https://github.com/involvex/youtube-music-cli/compare/v0.0.12...v0.0.13) (2026-02-18)
+
+### Features
+
+- **download:** add cover art and improved file organization ([1d48f7d](https://github.com/involvex/youtube-music-cli/commit/1d48f7de3a4787e9341697b4c6f44a50a43e752c))
+
+### BREAKING CHANGES
+
+- **download:** The output file structure has changed from flat directory
+  to nested artist/album directories. Existing workflows expecting the old
+  structure will need to be updated.
+
 ## [0.0.12](https://github.com/involvex/youtube-music-cli/compare/v0.0.11...v0.0.12) (2026-02-18)
 
 ## [0.0.11](https://github.com/involvex/youtube-music-cli/compare/v0.0.10...v0.0.11) (2026-02-18)

@@ -4,8 +4,21 @@ import {KEYBINDINGS} from '../../utils/constants.ts';
 import {usePlayer} from '../../hooks/usePlayer.ts';
 import {useTheme} from '../../hooks/useTheme.ts';
 import {Box, Text} from 'ink';
+import {useEffect} from 'react';
+import {logger} from '../../services/logger/logger.service.ts';
+
+let mountCount = 0;
 
 export default function PlayerControls() {
+	const instanceId = ++mountCount;
+
+	useEffect(() => {
+		logger.debug('PlayerControls', 'Component mounted', {instanceId});
+		return () => {
+			logger.debug('PlayerControls', 'Component unmounted', {instanceId});
+		};
+	}, [instanceId]);
+
 	const {theme} = useTheme();
 	const {
 		state: playerState,
@@ -16,6 +29,14 @@ export default function PlayerControls() {
 		volumeUp,
 		volumeDown,
 	} = usePlayer();
+
+	// Log when callbacks change (detect instability)
+	useEffect(() => {
+		logger.debug('PlayerControls', 'volumeUp callback changed', {
+			instanceId,
+			callbackRef: volumeUp.toString().slice(0, 50),
+		});
+	}, [volumeUp, instanceId]);
 
 	const handlePlayPause = () => {
 		if (playerState.isPlaying) {

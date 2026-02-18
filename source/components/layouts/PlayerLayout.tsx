@@ -1,4 +1,3 @@
-import PlayerControls from '../player/PlayerControls.tsx';
 import {usePlayer} from '../../hooks/usePlayer.ts';
 import NowPlaying from '../player/NowPlaying.tsx';
 import ProgressBar from '../player/ProgressBar.tsx';
@@ -38,7 +37,7 @@ export default function PlayerLayout() {
 
 			<NowPlaying />
 
-			<PlayerControls />
+			{/* PlayerControls moved to MainLayout for global key bindings */}
 
 			<ProgressBar />
 

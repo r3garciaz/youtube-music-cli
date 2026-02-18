@@ -10,6 +10,7 @@ import SearchLayout from './SearchLayout.tsx';
 import PlayerLayout from './PlayerLayout.tsx';
 import Suggestions from '../player/Suggestions.tsx';
 import Settings from '../settings/Settings.tsx';
+import PlayerControls from '../player/PlayerControls.tsx';
 import {KEYBINDINGS, VIEW} from '../../utils/constants.ts';
 import {Box} from 'ink';
 import {useTerminalSize} from '../../hooks/useTerminalSize.ts';
@@ -44,8 +45,11 @@ function MainLayout() {
 	}, [dispatch]);
 
 	const quit = useCallback(() => {
-		process.exit(0);
-	}, []);
+		// Only quit from player view, let other views handle ESC/q as BACK
+		if (navState.currentView === VIEW.PLAYER) {
+			process.exit(0);
+		}
+	}, [navState.currentView]);
 
 	// Global keyboard bindings
 	useKeyBinding(KEYBINDINGS.QUIT, quit);
@@ -89,6 +93,9 @@ function MainLayout() {
 			borderStyle="single"
 			borderColor={theme.colors.primary}
 		>
+			{/* Global player controls - always mounted for key bindings */}
+			<PlayerControls />
+
 			{currentView}
 		</Box>
 	);

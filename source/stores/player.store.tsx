@@ -344,7 +344,7 @@ export function PlayerProvider({children}: {children: ReactNode}) {
 				dispatch({category: 'VOLUME_UP'});
 			},
 			volumeDown: () => {
-				logger.debug('PlayerActions', 'volumeDown called');
+				logger.debug('PlayerActions', 'volumeUp called');
 				dispatch({category: 'VOLUME_DOWN'});
 			},
 			toggleShuffle: () => dispatch({category: 'TOGGLE_SHUFFLE'}),
@@ -357,16 +357,16 @@ export function PlayerProvider({children}: {children: ReactNode}) {
 			setQueuePosition: (position: number) =>
 				dispatch({category: 'SET_QUEUE_POSITION', position}),
 		}),
-		[],
+		[dispatch], // dispatch is stable, but include for correctness
 	);
 
 	const contextValue = useMemo(
 		() => ({
 			state,
-			dispatch,
+			dispatch, // Needed by PlayerManager
 			...actions,
 		}),
-		[state, actions],
+		[state, dispatch, actions],
 	);
 
 	return (

@@ -78,6 +78,7 @@ export function playerReducer(
 					...state,
 					queuePosition: randomIndex,
 					currentTrack: state.queue[randomIndex] ?? null,
+					isPlaying: true,
 					progress: 0,
 				};
 			}
@@ -90,6 +91,7 @@ export function playerReducer(
 						...state,
 						queuePosition: 0,
 						currentTrack: state.queue[0] ?? null,
+						isPlaying: true,
 						progress: 0,
 					};
 				}
@@ -99,6 +101,7 @@ export function playerReducer(
 				...state,
 				queuePosition: nextPosition,
 				currentTrack: state.queue[nextPosition] ?? null,
+				isPlaying: true,
 				progress: 0,
 			};
 		}

@@ -43,7 +43,7 @@ export class DiscordRpcService {
 				});
 
 				client
-					.login({clientId: '1234567890'}) // Public client ID for music players
+					.login({clientId: '1473580336964177960'}) // Public client ID for music players
 					.catch(reject);
 			});
 

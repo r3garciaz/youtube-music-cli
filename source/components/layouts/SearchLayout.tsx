@@ -57,7 +57,7 @@ function SearchLayout() {
 
 	// Open search history
 	const goToHistory = useCallback(() => {
-		if (isTyping) {
+		if (!isTyping) {
 			dispatch({category: 'NAVIGATE', view: VIEW.SEARCH_HISTORY});
 		}
 	}, [isTyping, dispatch]);
@@ -143,8 +143,8 @@ function SearchLayout() {
 			{/* Instructions */}
 			<Text color={theme.colors.dim}>
 				{isTyping
-					? 'Type to search, Enter to start, H for history'
-					: `Arrows to navigate, Enter to play, ]/[ more/fewer results (${navState.searchLimit}), Esc to type`}
+					? 'Type to search, Enter to start, Esc to clear'
+					: `Arrows to navigate, Enter to play, ]/[ more/fewer results (${navState.searchLimit}), H for history, Esc to type`}
 			</Text>
 		</Box>
 	);

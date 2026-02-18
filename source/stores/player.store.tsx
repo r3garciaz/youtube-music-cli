@@ -465,7 +465,7 @@ function PlayerManager() {
 		void loadAndPlayTrack();
 		// Note: state.volume intentionally excluded - volume changes should not restart playback
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state.currentTrack, dispatch, musicService]);
+	}, [state.currentTrack, state.isPlaying, dispatch, musicService]);
 
 	// Handle progress tracking
 	useEffect(() => {

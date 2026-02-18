@@ -6,6 +6,7 @@ import {ThemeProvider} from './contexts/theme.context.tsx';
 import {PlayerProvider} from './stores/player.store.tsx';
 import {ErrorBoundary} from './components/common/ErrorBoundary.tsx';
 import {KeyboardManager} from './hooks/useKeyboard.ts';
+import {KeyboardBlockProvider} from './hooks/useKeyboardBlocker.tsx';
 import {Box, Text} from 'ink';
 import type {Flags} from './types/cli.types.ts';
 import {useEffect} from 'react';
@@ -74,17 +75,19 @@ export default function Main({flags}: {flags?: Flags}) {
 				<PlayerProvider>
 					<NavigationProvider>
 						<PluginsProvider>
-							<Box flexDirection="column">
-								<KeyboardManager />
-								{flags?.headless ? (
-									<HeadlessLayout flags={flags} />
-								) : (
-									<>
-										<Initializer flags={flags} />
-										<MainLayout />
-									</>
-								)}
-							</Box>
+							<KeyboardBlockProvider>
+								<Box flexDirection="column">
+									<KeyboardManager />
+									{flags?.headless ? (
+										<HeadlessLayout flags={flags} />
+									) : (
+										<>
+											<Initializer flags={flags} />
+											<MainLayout />
+										</>
+									)}
+								</Box>
+							</KeyboardBlockProvider>
 						</PluginsProvider>
 					</NavigationProvider>
 				</PlayerProvider>

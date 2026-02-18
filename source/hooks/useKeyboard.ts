@@ -2,6 +2,7 @@
 import {useCallback, useEffect} from 'react';
 import {useInput} from 'ink';
 import {logger} from '../services/logger/logger.service.ts';
+import {useKeyboardBlockContext} from './useKeyboardBlocker.tsx';
 
 type KeyHandler = () => void;
 type RegistryEntry = {
@@ -37,7 +38,14 @@ export function useKeyBinding(
  * This should be rendered once at the root of the app.
  */
 export function KeyboardManager() {
+	const {blockCount} = useKeyboardBlockContext();
 	useInput((input, key) => {
+		if (blockCount > 0) {
+			// When keyboard input is blocked (e.g., within a focused text input),
+			// we deliberately skip executing global shortcuts.
+			return;
+		}
+
 		// Debug logging for key presses (helps diagnose binding issues)
 		if (input || key.ctrl || key.meta || key.shift) {
 			logger.debug('KeyboardManager', 'Key pressed', {
@@ -92,6 +100,7 @@ export function KeyboardManager() {
 						if (hasCtrl && !key.ctrl) return false;
 						if (hasMeta && !key.meta) return false;
 						if (hasShift && !key.shift) return false;
+						if (!hasShift && key.shift) return false;
 
 						// Check the actual key
 						if (mainKey === 'up' && key.upArrow) return true;

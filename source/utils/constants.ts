@@ -44,9 +44,10 @@ export const KEYBINDINGS = {
 	QUIT: ['q', 'escape'],
 	HELP: ['?'],
 	SEARCH: ['/'],
-	PLAYLISTS: ['p'],
+	PLAYLISTS: ['shift+p'],
 	SUGGESTIONS: ['g'],
 	SETTINGS: [','],
+	PLUGINS: ['p'],
 
 	// Player
 	PLAY_PAUSE: [' '],

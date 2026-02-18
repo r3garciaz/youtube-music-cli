@@ -1,24 +1,88 @@
 // Playlist list component
 import {Box, Text} from 'ink';
-import {useTheme} from '../../hooks/useTheme.ts';
-import {usePlaylist} from '../../hooks/usePlaylist.ts';
+import TextInput from 'ink-text-input';
+import {useCallback, useState} from 'react';
+import {useNavigation} from '../../hooks/useNavigation.ts';
 import {useKeyBinding} from '../../hooks/useKeyboard.ts';
+import {usePlayer} from '../../hooks/usePlayer.ts';
+import {usePlaylist} from '../../hooks/usePlaylist.ts';
+import {useTheme} from '../../hooks/useTheme.ts';
+import {useKeyboardBlocker} from '../../hooks/useKeyboardBlocker.tsx';
 import {KEYBINDINGS} from '../../utils/constants.ts';
-import {useState, useCallback} from 'react';
-import type {Playlist} from '../../types/youtube-music.types.ts';
 
 export default function PlaylistList() {
 	const {theme} = useTheme();
-	const {playlists, createPlaylist} = usePlaylist();
+	const {play, setQueue} = usePlayer();
+	const {dispatch} = useNavigation();
+	const {playlists, createPlaylist, renamePlaylist} = usePlaylist();
+	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [lastCreated, setLastCreated] = useState<string | null>(null);
+	const [renamingPlaylistId, setRenamingPlaylistId] = useState<string | null>(
+		null,
+	);
+	const [renameValue, setRenameValue] = useState('');
+	useKeyboardBlocker(renamingPlaylistId !== null);
 
 	const handleCreate = useCallback(() => {
 		const name = `Playlist ${playlists.length + 1}`;
 		createPlaylist(name);
 		setLastCreated(name);
-	}, [playlists.length, createPlaylist]);
+		setSelectedIndex(playlists.length);
+	}, [createPlaylist, playlists.length]);
 
+	const navigateUp = useCallback(() => {
+		setSelectedIndex(prev => Math.max(0, prev - 1));
+	}, []);
+
+	const navigateDown = useCallback(() => {
+		setSelectedIndex(prev =>
+			Math.min(playlists.length === 0 ? 0 : playlists.length - 1, prev + 1),
+		);
+	}, [playlists.length]);
+
+	const startPlaylist = useCallback(() => {
+		if (renamingPlaylistId) return;
+		const playlist = playlists[selectedIndex];
+		if (!playlist || playlist.tracks.length === 0) return;
+		setQueue([...playlist.tracks]);
+		const firstTrack = playlist.tracks[0];
+		if (!firstTrack) return;
+		play(firstTrack);
+	}, [play, playlists, selectedIndex, renamingPlaylistId, setQueue]);
+
+	const handleRename = useCallback(() => {
+		const playlist = playlists[selectedIndex];
+		if (!playlist) return;
+		setRenamingPlaylistId(playlist.playlistId);
+		setRenameValue(playlist.name);
+	}, [playlists, selectedIndex]);
+
+	const handleRenameSubmit = useCallback(
+		(value: string) => {
+			if (!renamingPlaylistId) return;
+			const trimmedValue = value.trim() || `Playlist ${selectedIndex + 1}`;
+			renamePlaylist(renamingPlaylistId, trimmedValue);
+			setRenamingPlaylistId(null);
+			setRenameValue('');
+		},
+		[renamePlaylist, renamingPlaylistId, selectedIndex],
+	);
+
+	const handleBack = useCallback(() => {
+		if (renamingPlaylistId) {
+			setRenamingPlaylistId(null);
+			setRenameValue('');
+			return;
+		}
+		dispatch({category: 'GO_BACK'});
+	}, [dispatch, renamingPlaylistId]);
+
+	useKeyBinding(KEYBINDINGS.UP, navigateUp);
+	useKeyBinding(KEYBINDINGS.DOWN, navigateDown);
+	useKeyBinding(KEYBINDINGS.SELECT, startPlaylist);
+	useKeyBinding(['r'], handleRename);
 	useKeyBinding(KEYBINDINGS.CREATE_PLAYLIST, handleCreate);
+	useKeyBinding(KEYBINDINGS.BACK, handleBack);
 
 	return (
 		<Box flexDirection="column" gap={1}>
@@ -34,27 +98,65 @@ export default function PlaylistList() {
 				</Text>
 			</Box>
 
-			{/* Playlist List */}
+			{/* Playlist entries */}
 			{playlists.length === 0 ? (
 				<Text color={theme.colors.dim}>No playlists yet</Text>
 			) : (
-				playlists.map((playlist: Playlist, index: number) => (
-					<Box key={playlist.playlistId || index} paddingX={1}>
-						<Text color={theme.colors.primary}>{index + 1}.</Text>
-						<Text> </Text>
-						<Text color={theme.colors.text}>{playlist.name}</Text>
-						<Text color={theme.colors.dim}>
-							<Text> </Text>({playlist.tracks?.length || 0} tracks)
-						</Text>
-					</Box>
-				))
+				playlists.map((playlist, index) => {
+					const isSelected = index === selectedIndex;
+					const isRenaming =
+						renamingPlaylistId === playlist.playlistId && isSelected;
+					const rowBackground = isSelected ? theme.colors.secondary : undefined;
+
+					return (
+						<Box
+							key={playlist.playlistId}
+							paddingX={1}
+							backgroundColor={rowBackground}
+						>
+							<Text
+								color={
+									isSelected ? theme.colors.background : theme.colors.primary
+								}
+								bold={isSelected}
+							>
+								{index + 1}.
+							</Text>
+							<Text> </Text>
+							<Box flexDirection="column">
+								{isRenaming ? (
+									<TextInput
+										value={renameValue}
+										onChange={setRenameValue}
+										onSubmit={handleRenameSubmit}
+										placeholder="Playlist name"
+										focus
+									/>
+								) : (
+									<Text
+										color={
+											isSelected ? theme.colors.background : theme.colors.text
+										}
+										bold={isSelected}
+									>
+										{playlist.name}
+									</Text>
+								)}
+								<Text color={theme.colors.dim}>
+									{` (${playlist.tracks.length} tracks)`}
+								</Text>
+							</Box>
+						</Box>
+					);
+				})
 			)}
 
 			{/* Instructions */}
 			<Box marginTop={1}>
 				<Text color={theme.colors.dim}>
-					Press <Text color={theme.colors.text}>c</Text> to create playlist
-					<Text> | </Text>
+					<Text color={theme.colors.text}>Enter</Text> to play playlist |{' '}
+					<Text color={theme.colors.text}>r</Text> to rename |{' '}
+					<Text color={theme.colors.text}>c</Text> to create |{' '}
 					<Text color={theme.colors.text}>Esc</Text> to go back
 				</Text>
 				{lastCreated && (

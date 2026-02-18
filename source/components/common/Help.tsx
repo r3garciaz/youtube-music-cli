@@ -32,7 +32,9 @@ export default function Help() {
 						<Text> | </Text>
 						<Text color={theme.colors.text}>/</Text> - Search
 						<Text> | </Text>
-						<Text color={theme.colors.text}>p</Text> - Playlists
+						<Text color={theme.colors.text}>Shift+P</Text> - Playlists
+						<Text> | </Text>
+						<Text color={theme.colors.text}>p</Text> - Plugins
 						<Text> | </Text>
 						<Text color={theme.colors.text}>g</Text> - Suggestions
 						<Text> | </Text>

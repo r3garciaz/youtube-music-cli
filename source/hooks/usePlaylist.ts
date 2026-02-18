@@ -65,6 +65,19 @@ export function usePlaylist() {
 		[playlists, configService],
 	);
 
+	const renamePlaylist = useCallback(
+		(playlistId: string, newName: string) => {
+			const updatedPlaylists = playlists.map(playlist =>
+				playlist.playlistId === playlistId
+					? {...playlist, name: newName}
+					: playlist,
+			);
+			setPlaylists(updatedPlaylists);
+			configService.set('playlists', updatedPlaylists);
+		},
+		[playlists, configService],
+	);
+
 	const removeTrackFromPlaylist = useCallback(
 		(playlistId: string, trackIndex: number) => {
 			const playlistIndex = playlists.findIndex(
@@ -85,6 +98,7 @@ export function usePlaylist() {
 		playlists,
 		createPlaylist,
 		deletePlaylist,
+		renamePlaylist,
 		addTrackToPlaylist,
 		removeTrackFromPlaylist,
 	};

@@ -44,6 +44,10 @@ function MainLayout() {
 		dispatch({category: 'NAVIGATE', view: VIEW.SUGGESTIONS});
 	}, [dispatch]);
 
+	const goToPlugins = useCallback(() => {
+		dispatch({category: 'NAVIGATE', view: VIEW.PLUGINS});
+	}, [dispatch]);
+
 	const goToSettings = useCallback(() => {
 		dispatch({category: 'NAVIGATE', view: VIEW.SETTINGS});
 	}, [dispatch]);
@@ -81,6 +85,7 @@ function MainLayout() {
 	useKeyBinding(KEYBINDINGS.QUIT, handleQuit);
 	useKeyBinding(KEYBINDINGS.SEARCH, goToSearch);
 	useKeyBinding(KEYBINDINGS.PLAYLISTS, goToPlaylists);
+	useKeyBinding(KEYBINDINGS.PLUGINS, goToPlugins);
 	useKeyBinding(KEYBINDINGS.SUGGESTIONS, goToSuggestions);
 	useKeyBinding(KEYBINDINGS.SETTINGS, goToSettings);
 	useKeyBinding(KEYBINDINGS.HELP, goToHelp);

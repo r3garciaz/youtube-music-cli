@@ -62,6 +62,7 @@
 		"jiti": "^2.6.1",
 		"meow": "^14.0.0",
 		"node-notifier": "^10.0.1",
+		"discord-rpc": "^4.0.1",
 		"node-youtube-music": "^0.10.3",
 		"play-sound": "^1.1.6",
 		"react": "^19.2.4",

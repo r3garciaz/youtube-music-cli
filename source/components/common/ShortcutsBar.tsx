@@ -54,8 +54,10 @@ export default function ShortcutsBar() {
 			{/* Left: Navigation shortcuts */}
 			<Text color={theme.colors.dim}>
 				Shortcuts: <Text color={theme.colors.text}>Space</Text> Play/Pause |{' '}
-				<Text color={theme.colors.text}>n</Text> Next |{' '}
-				<Text color={theme.colors.text}>p</Text> Previous |{' '}
+				<Text color={theme.colors.text}>→</Text> Next |{' '}
+				<Text color={theme.colors.text}>←</Text> Previous |{' '}
+				<Text color={theme.colors.text}>Shift+P</Text> Playlists |{' '}
+				<Text color={theme.colors.text}>p</Text> Plugins |{' '}
 				<Text color={theme.colors.text}>/</Text> Search |{' '}
 				<Text color={theme.colors.text}>,</Text> Settings |{' '}
 				<Text color={theme.colors.text}>?</Text> Help |{' '}

@@ -99,7 +99,7 @@ brew install involvex/youtube-music-cli/youtube-music-cli
 winget install Involvex.YoutubeMusicCLI
 ```
 
-> Maintainers: automated winget updates use `WINGETCREATE_TOKEN` (GitHub PAT with `public_repo`) and assume `Involvex.YoutubeMusicCLI` already exists in winget-pkgs.
+> Maintainers: automated winget updates use `WINGETCREATE_TOKEN` (GitHub PAT with `public_repo`) and require a one-time first submission to winget-pkgs before updates are automatic.
 
 ### From Source
 

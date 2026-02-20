@@ -2,10 +2,20 @@
 import {Box, Text} from 'ink';
 import {useTheme} from '../../hooks/useTheme.ts';
 import {useNavigation} from '../../hooks/useNavigation.ts';
+import {useKeyBinding} from '../../hooks/useKeyboard.ts';
+import {KEYBINDINGS} from '../../utils/constants.ts';
+import {useCallback} from 'react';
 
 export default function Help() {
 	const {theme} = useTheme();
-	const {dispatch: _dispatch} = useNavigation();
+	const {dispatch} = useNavigation();
+
+	const closeHelp = useCallback(() => {
+		dispatch({category: 'GO_BACK'});
+	}, [dispatch]);
+
+	useKeyBinding(KEYBINDINGS.BACK, closeHelp);
+	useKeyBinding(KEYBINDINGS.SELECT, closeHelp);
 
 	return (
 		<Box flexDirection="column" gap={1} padding={1}>
@@ -39,6 +49,10 @@ export default function Help() {
 						<Text color={theme.colors.text}>g</Text> - Suggestions
 						<Text> | </Text>
 						<Text color={theme.colors.text}>,</Text> - Settings
+						<Text> | </Text>
+						<Text color={theme.colors.text}>Shift+Q</Text> - Background Play
+						<Text> | </Text>
+						<Text color={theme.colors.text}>Shift+R</Text> - Resume Control
 					</Text>
 				</Box>
 
@@ -136,7 +150,9 @@ export default function Help() {
 
 				{/* Instructions */}
 				<Text color={theme.colors.dim}>
-					Press <Text color={theme.colors.text}>Esc</Text> or{' '}
+					Press <Text color={theme.colors.text}>Esc</Text>,{' '}
+					<Text color={theme.colors.text}>Enter</Text>,{' '}
+					<Text color={theme.colors.text}>q</Text>, or{' '}
 					<Text color={theme.colors.text}>?</Text> to close
 				</Text>
 			</Box>

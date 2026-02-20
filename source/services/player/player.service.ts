@@ -309,7 +309,11 @@ class PlayerService {
 
 				// Capture process in local var so stale exit handlers from a killed
 				// process don't overwrite state belonging to a newly-spawned process.
-				const spawnedProcess = spawn(this.getMpvCommand(), mpvArgs);
+				const spawnedProcess = spawn(this.getMpvCommand(), mpvArgs, {
+					detached: true,
+					stdio: ['ignore', 'pipe', 'pipe'],
+					windowsHide: true,
+				});
 				this.mpvProcess = spawnedProcess;
 
 				if (!spawnedProcess.stdout || !spawnedProcess.stderr) {
@@ -467,6 +471,11 @@ class PlayerService {
 			ipcPath: this.ipcPath,
 			currentUrl: this.currentUrl,
 		};
+
+		if (this.mpvProcess) {
+			// Allow detached mpv process to survive after CLI exits.
+			this.mpvProcess.unref();
+		}
 
 		// Clear references but DON'T kill mpv process - it keeps playing
 		this.mpvProcess = null;

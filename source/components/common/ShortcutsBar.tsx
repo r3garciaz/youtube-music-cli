@@ -50,18 +50,18 @@ export default function ShortcutsBar() {
 		>
 			{/* Left: Navigation shortcuts */}
 			<Text color={theme.colors.dim}>
-				<Text color={theme.colors.text}>␠</Text>
-				{playerState.isPlaying ? '⏸️' : '▶️'} |{' '}
-				<Text color={theme.colors.text}>←</Text>⏪️ |{' '}
-				<Text color={theme.colors.text}>→</Text>⏭️ |{' '}
-				<Text color={theme.colors.text}>⇧S</Text>🔀 |{' '}
-				<Text color={theme.colors.text}>R</Text>🔄 |{' '}
-				<Text color={theme.colors.text}>⇧P</Text>📚 |{' '}
-				<Text color={theme.colors.text}>⇧D</Text>⬇ |{' '}
-				<Text color={theme.colors.text}>m</Text>🎶 |{' '}
-				<Text color={theme.colors.text}>/</Text>🔎 |{' '}
-				<Text color={theme.colors.text}>?</Text>❓ |{' '}
-				<Text color={theme.colors.text}>Q</Text>⏻
+				<Text color={theme.colors.text}>⏯ [Space]</Text> |{' '}
+				<Text color={theme.colors.text}>⏮ [B/←]</Text> |{' '}
+				<Text color={theme.colors.text}>⏭ [N/→]</Text> |{' '}
+				<Text color={theme.colors.text}>🔀 [Shift+S]</Text> |{' '}
+				<Text color={theme.colors.text}>🔁 [R]</Text> |{' '}
+				<Text color={theme.colors.text}>📚 [Shift+P]</Text> |{' '}
+				<Text color={theme.colors.text}>⬇ [Shift+D]</Text> |{' '}
+				<Text color={theme.colors.text}>🔎 [/]</Text> |{' '}
+				<Text color={theme.colors.text}>❓ [?]</Text> |{' '}
+				<Text color={theme.colors.text}>🛰 [Shift+Q]</Text> |{' '}
+				<Text color={theme.colors.text}>🔌 [Shift+R]</Text> |{' '}
+				<Text color={theme.colors.text}>⏻ [Q]</Text>
 			</Text>
 
 			{/* Right: Playback mode + volume indicator */}
@@ -80,8 +80,7 @@ export default function ShortcutsBar() {
 				>
 					{playerState.repeat === 'one' ? '🔂' : '🔄'}
 				</Text>{' '}
-				<Text color={theme.colors.dim}>🔊 [=/</Text>-
-				<Text color={theme.colors.dim}>]</Text>{' '}
+				<Text color={theme.colors.dim}>🔊 [=/-]</Text>{' '}
 				<Text color={theme.colors.primary}>{playerState.volume}%</Text>
 			</Text>
 		</Box>

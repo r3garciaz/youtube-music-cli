@@ -26,10 +26,12 @@ import {Box} from 'ink';
 import {useTerminalSize} from '../../hooks/useTerminalSize.ts';
 import {getPlayerService} from '../../services/player/player.service.ts';
 import {getConfigService} from '../../services/config/config.service.ts';
+import {usePlayer} from '../../hooks/usePlayer.ts';
 
 function MainLayout() {
 	const {theme} = useTheme();
 	const {state: navState, dispatch} = useNavigation();
+	const {resume} = usePlayer();
 	const {columns} = useTerminalSize();
 
 	// Responsive padding based on terminal size
@@ -57,8 +59,13 @@ function MainLayout() {
 	}, [dispatch]);
 
 	const goToHelp = useCallback(() => {
+		if (navState.currentView === VIEW.HELP) {
+			dispatch({category: 'GO_BACK'});
+			return;
+		}
+
 		dispatch({category: 'NAVIGATE', view: VIEW.HELP});
-	}, [dispatch]);
+	}, [dispatch, navState.currentView]);
 
 	const handleQuit = useCallback(() => {
 		// From player view, quit the app
@@ -108,6 +115,25 @@ function MainLayout() {
 		process.exit(0);
 	}, []);
 
+	const handleResumeBackground = useCallback(() => {
+		const player = getPlayerService();
+		const config = getConfigService();
+		const backgroundState = config.getBackgroundPlaybackState();
+		if (!backgroundState.enabled || !backgroundState.ipcPath) {
+			return;
+		}
+
+		void player
+			.reattach(backgroundState.ipcPath)
+			.then(() => {
+				resume();
+				config.clearBackgroundPlaybackState();
+			})
+			.catch(() => {
+				config.clearBackgroundPlaybackState();
+			});
+	}, [resume]);
+
 	const togglePlayerMode = useCallback(() => {
 		dispatch({category: 'TOGGLE_PLAYER_MODE'});
 	}, [dispatch]);
@@ -126,6 +152,7 @@ function MainLayout() {
 	useKeyBinding(['e'], goToExplore);
 	useKeyBinding(['i'], goToImport);
 	useKeyBinding(KEYBINDINGS.DETACH, handleDetach);
+	useKeyBinding(KEYBINDINGS.RESUME_BACKGROUND, handleResumeBackground);
 
 	// Memoize the view component to prevent unnecessary remounts
 	// Only recreate when currentView actually changes

@@ -51,6 +51,7 @@ export const KEYBINDINGS = {
 	SETTINGS: [','],
 	PLUGINS: ['p'],
 	DETACH: ['shift+q'],
+	RESUME_BACKGROUND: ['shift+r'],
 
 	// Player
 	PLAY_PAUSE: [' '],

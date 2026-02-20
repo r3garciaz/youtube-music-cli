@@ -15,7 +15,6 @@ import {usePlayer} from './hooks/usePlayer.ts';
 import {useYouTubeMusic} from './hooks/useYouTubeMusic.ts';
 import {VIEW} from './utils/constants.ts';
 import {getConfigService} from './services/config/config.service.ts';
-import {getPlayerService} from './services/player/player.service.ts';
 import {getNotificationService} from './services/notification/notification.service.ts';
 
 function Initializer({flags}: {flags?: Flags}) {
@@ -26,7 +25,6 @@ function Initializer({flags}: {flags?: Flags}) {
 	useEffect(() => {
 		// Check for background playback state on startup
 		const config = getConfigService();
-		const player = getPlayerService();
 		const backgroundState = config.getBackgroundPlaybackState();
 
 		if (backgroundState.enabled) {
@@ -35,16 +33,8 @@ function Initializer({flags}: {flags?: Flags}) {
 			notification.setEnabled(true);
 			void notification.notify(
 				'Background Playback Active',
-				'Press R to resume control',
+				'Press Shift+R to resume control',
 			);
-
-			// Try to reattach to the existing mpv process
-			if (backgroundState.ipcPath) {
-				void player.reattach(backgroundState.ipcPath).catch(() => {
-					// Reattach failed, clear the state
-					config.clearBackgroundPlaybackState();
-				});
-			}
 		}
 
 		if (flags?.showSuggestions) {

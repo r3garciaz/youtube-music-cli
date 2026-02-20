@@ -23,9 +23,6 @@ scoop install mpv
 
 # Chocolatey
 choco install mpv
-
-# winget
-winget install mpv
 ```
 
 **macOS:**
@@ -93,13 +90,23 @@ bun install -g @involvex/youtube-music-cli
 brew install involvex/youtube-music-cli/youtube-music-cli
 ```
 
-### Winget
+### GitHub Releases
 
 ```bash
-winget install Involvex.YoutubeMusicCLI
+https://github.com/involvex/youtube-music-cli/releases
 ```
 
-> Maintainers: automated winget updates use `WINGETCREATE_TOKEN` (GitHub PAT with `public_repo`) and require a one-time first submission to winget-pkgs before updates are automatic.
+### Install Script (bash)
+
+```bash
+curl -fssl https://raw.githubusercontent.com/involvex/youtube-music-cli/main/scripts/install.sh | bash
+```
+
+### Install Script (PowerShell)
+
+```powershell
+iwr https://raw.githubusercontent.com/involvex/youtube-music-cli/main/scripts/install.ps1 | iex
+```
 
 ### From Source
 

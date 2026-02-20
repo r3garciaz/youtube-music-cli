@@ -46,9 +46,6 @@ scoop install mpv yt-dlp
 
 # With Chocolatey
 choco install mpv yt-dlp
-
-# With winget
-winget install mpv yt-dlp
 ```
 
 </details>
@@ -99,13 +96,23 @@ bun install -g @involvex/youtube-music-cli
 brew install involvex/youtube-music-cli/youtube-music-cli
 ```
 
-### Winget
+### GitHub Releases
 
 ```bash
-winget install Involvex.YoutubeMusicCLI
+https://github.com/involvex/youtube-music-cli/releases
 ```
 
-> Maintainers: tag pushes trigger `.github/workflows/homebrew-publish.yml` and `.github/workflows/winget-publish.yml`. Homebrew uses the tap format `involvex/youtube-music-cli/youtube-music-cli`, so ensure the formula file exists on the default branch at `Formula/youtube-music-cli.rb` for the tap installation to work. Winget needs `WINGETCREATE_TOKEN` (GitHub PAT with `public_repo`) and a one-time initial submission to winget-pkgs before automated updates can run.
+### Install Script (bash)
+
+```bash
+curl -fssl https://raw.githubusercontent.com/involvex/youtube-music-cli/main/scripts/install.sh | bash
+```
+
+### Install Script (PowerShell)
+
+```powershell
+iwr https://raw.githubusercontent.com/involvex/youtube-music-cli/main/scripts/install.ps1 | iex
+```
 
 ### From Source
 

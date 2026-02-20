@@ -1,3 +1,9 @@
+## [0.0.22](https://github.com/involvex/youtube-music-cli/compare/v0.0.21...v0.0.22) (2026-02-20)
+
+### Features
+
+- add Homebrew and Winget publish workflows with Snyk security rules ([cff659b](https://github.com/involvex/youtube-music-cli/commit/cff659b2775fd50bb898fbf9b552e0fa413ff0fa))
+
 ## [0.0.21](https://github.com/involvex/youtube-music-cli/compare/v0.0.20...v0.0.21) (2026-02-20)
 
 ## [0.0.20](https://github.com/involvex/youtube-music-cli/compare/v0.0.19...v0.0.20) (2026-02-20)

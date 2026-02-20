@@ -24,6 +24,7 @@ const SETTINGS_ITEMS = [
 	'Download Folder',
 	'Download Format',
 	'Sleep Timer',
+	'Import Playlists',
 	'Custom Keybindings',
 	'Manage Plugins',
 ] as const;
@@ -142,8 +143,10 @@ export default function Settings() {
 		} else if (selectedIndex === 7) {
 			cycleSleepTimer();
 		} else if (selectedIndex === 8) {
-			dispatch({category: 'NAVIGATE', view: VIEW.KEYBINDINGS});
+			dispatch({category: 'NAVIGATE', view: VIEW.IMPORT});
 		} else if (selectedIndex === 9) {
+			dispatch({category: 'NAVIGATE', view: VIEW.KEYBINDINGS});
+		} else if (selectedIndex === 10) {
 			dispatch({category: 'NAVIGATE', view: VIEW.PLUGINS});
 		}
 	};
@@ -314,7 +317,7 @@ export default function Settings() {
 				</Text>
 			</Box>
 
-			{/* Custom Keybindings */}
+			{/* Import Playlists */}
 			<Box paddingX={1}>
 				<Text
 					backgroundColor={
@@ -325,11 +328,11 @@ export default function Settings() {
 					}
 					bold={selectedIndex === 8}
 				>
-					Custom Keybindings →
+					Import Playlists →
 				</Text>
 			</Box>
 
-			{/* Manage Plugins */}
+			{/* Custom Keybindings */}
 			<Box paddingX={1}>
 				<Text
 					backgroundColor={
@@ -339,6 +342,21 @@ export default function Settings() {
 						selectedIndex === 9 ? theme.colors.background : theme.colors.text
 					}
 					bold={selectedIndex === 9}
+				>
+					Custom Keybindings →
+				</Text>
+			</Box>
+
+			{/* Manage Plugins */}
+			<Box paddingX={1}>
+				<Text
+					backgroundColor={
+						selectedIndex === 10 ? theme.colors.primary : undefined
+					}
+					color={
+						selectedIndex === 10 ? theme.colors.background : theme.colors.text
+					}
+					bold={selectedIndex === 10}
 				>
 					Manage Plugins
 				</Text>

@@ -12,4 +12,14 @@ export interface Flags {
 	showSuggestions?: boolean;
 	headless?: boolean;
 	action?: 'pause' | 'resume' | 'next' | 'previous';
+	// Playlist import flags
+	importSource?: 'spotify' | 'youtube';
+	importUrl?: string;
+	importName?: string;
+	// Web server flags
+	web?: boolean;
+	webHost?: string;
+	webPort?: number;
+	webOnly?: boolean;
+	webAuth?: string;
 }

@@ -36,6 +36,16 @@ class ConfigService {
 			downloadsEnabled: false,
 			downloadDirectory: path.join(CONFIG_DIR, 'downloads'),
 			downloadFormat: 'mp3',
+			webServer: {
+				enabled: false,
+				host: 'localhost',
+				port: 8080,
+				enableCors: true,
+				allowedOrigins: ['*'],
+				auth: {
+					enabled: false,
+				},
+			},
 		};
 	}
 

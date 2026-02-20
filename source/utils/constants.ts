@@ -27,6 +27,7 @@ export const VIEW = {
 	KEYBINDINGS: 'keybindings',
 	TRENDING: 'trending',
 	EXPLORE: 'explore',
+	IMPORT: 'import',
 } as const;
 
 // Search types

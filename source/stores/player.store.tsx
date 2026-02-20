@@ -18,6 +18,8 @@ import {getNotificationService} from '../services/notification/notification.serv
 import {getScrobblingService} from '../services/scrobbling/scrobbling.service.ts';
 import {getDiscordRpcService} from '../services/discord/discord-rpc.service.ts';
 import {getMprisService} from '../services/mpris/mpris.service.ts';
+import {getWebServerManager} from '../services/web/web-server-manager.ts';
+import {getWebStreamingService} from '../services/web/web-streaming.service.ts';
 
 const initialState: PlayerState = {
 	currentTrack: null,
@@ -681,6 +683,32 @@ export function PlayerProvider({children}: {children: ReactNode}) {
 		// Only register handlers once, update via ref
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	// Web streaming: Broadcast state changes to connected clients
+	useEffect(() => {
+		// Initialize web streaming service and set up command handler
+		const streamingService = getWebStreamingService();
+
+		// Set up handler for incoming commands from web clients
+		const unsubscribe = streamingService.onMessage(message => {
+			if (message.type === 'command') {
+				dispatch(message.action);
+			}
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [dispatch]);
+
+	// Broadcast state changes to web clients
+	useEffect(() => {
+		const webServerManager = getWebServerManager();
+		if (webServerManager.isServerRunning()) {
+			const streamingService = getWebStreamingService();
+			streamingService.onStateChange(state);
+		}
+	}, [state]);
 
 	const actions = useMemo(
 		() => ({

@@ -6,6 +6,9 @@ import meow from 'meow';
 import {getPluginInstallerService} from './services/plugin/plugin-installer.service.ts';
 import {getPluginUpdaterService} from './services/plugin/plugin-updater.service.ts';
 import {getPluginRegistryService} from './services/plugin/plugin-registry.service.ts';
+import {getImportService} from './services/import/import.service.ts';
+import {getWebServerManager} from './services/web/web-server-manager.ts';
+import {getWebStreamingService} from './services/web/web-streaming.service.ts';
 
 const cli = meow(
 	`
@@ -28,13 +31,23 @@ const cli = meow(
 	  $ youtube-music-cli plugins enable <name>
 	  $ youtube-music-cli plugins disable <name>
 
+	Import Commands
+	  $ youtube-music-cli import spotify <url-or-id>
+	  $ youtube-music-cli import youtube <url-or-id>
+
 	Options
-	  --theme, -t    Theme to use (dark, light, midnight, matrix)
-	  --volume, -v   Initial volume (0-100)
-	  --shuffle, -s   Enable shuffle mode
-	  --repeat, -r   Repeat mode (off, all, one)
-	  --headless     Run without TUI (just play)
-	  --help, -h     Show this help
+	  --theme, -t          Theme to use (dark, light, midnight, matrix)
+	  --volume, -v         Initial volume (0-100)
+	  --shuffle, -s        Enable shuffle mode
+	  --repeat, -r         Repeat mode (off, all, one)
+	  --headless           Run without TUI (just play)
+	  --web                Enable web UI server
+	  --web-host           Web server host (default: localhost)
+	  --web-port           Web server port (default: 8080)
+	  --web-only           Run web server without CLI UI
+	  --web-auth           Authentication token for web server
+	  --name               Custom name for imported playlist
+	  --help, -h           Show this help
 
 	Examples
 	  $ youtube-music-cli
@@ -42,6 +55,8 @@ const cli = meow(
 	  $ youtube-music-cli search "Rick Astley"
 	  $ youtube-music-cli play dQw4w9WgXcQ --headless
 	  $ youtube-music-cli plugins install adblock
+	  $ youtube-music-cli import spotify "https://open.spotify.com/playlist/..."
+	  $ youtube-music-cli --web --web-port 3000
 `,
 	{
 		importMeta: import.meta,
@@ -66,6 +81,26 @@ const cli = meow(
 			headless: {
 				type: 'boolean',
 				default: false,
+			},
+			web: {
+				type: 'boolean',
+				default: false,
+			},
+			webHost: {
+				type: 'string',
+			},
+			webPort: {
+				type: 'number',
+			},
+			webOnly: {
+				type: 'boolean',
+				default: false,
+			},
+			webAuth: {
+				type: 'string',
+			},
+			name: {
+				type: 'string',
 			},
 			help: {
 				type: 'boolean',
@@ -254,8 +289,102 @@ if (command === 'plugins') {
 		(cli.flags as Flags).action = 'next';
 	} else if (command === 'back') {
 		(cli.flags as Flags).action = 'previous';
-	}
+	} else if (command === 'import') {
+		// Handle import commands
+		void (async () => {
+			const source = args[0];
+			const url = args[1];
 
-	// Render the app
-	render(<App flags={cli.flags as Flags} />);
+			if (!source || !url) {
+				console.error(
+					'Usage: youtube-music-cli import <spotify|youtube> <url-or-id>',
+				);
+				process.exit(1);
+			}
+
+			if (source !== 'spotify' && source !== 'youtube') {
+				console.error('Invalid source. Use "spotify" or "youtube".');
+				process.exit(1);
+			}
+
+			const importService = getImportService();
+			const customName = cli.flags.name;
+
+			try {
+				console.log(`Importing ${source} playlist...`);
+				const result = await importService.importPlaylist(
+					source,
+					url,
+					customName,
+				);
+
+				console.log(`\n✓ Import completed!`);
+				console.log(`  Playlist: ${result.playlistName}`);
+				console.log(`  Matched: ${result.matched}/${result.total} tracks`);
+
+				if (result.errors.length > 0) {
+					console.log(`\nErrors:`);
+					for (const error of result.errors.slice(0, 10)) {
+						console.log(`  - ${error}`);
+					}
+					if (result.errors.length > 10) {
+						console.log(`  ... and ${result.errors.length - 10} more`);
+					}
+				}
+
+				process.exit(0);
+			} catch (error) {
+				console.error(
+					`✗ Import failed: ${error instanceof Error ? error.message : String(error)}`,
+				);
+				process.exit(1);
+			}
+		})();
+	} else if (cli.flags.web || cli.flags.webOnly) {
+		// Handle web server flags
+		void (async () => {
+			const webManager = getWebServerManager();
+
+			try {
+				await webManager.start({
+					enabled: true,
+					host: cli.flags.webHost ?? 'localhost',
+					port: cli.flags.webPort ?? 8080,
+					webOnly: cli.flags.webOnly,
+					auth: cli.flags.webAuth,
+				});
+
+				const serverUrl = webManager.getServerUrl();
+				console.log(`Web UI server running at: ${serverUrl}`);
+
+				// Set up import progress streaming
+				const streamingService = getWebStreamingService();
+				const importService = getImportService();
+				importService.onProgress(progress => {
+					streamingService.onImportProgress(progress);
+				});
+
+				// If web-only mode, just keep the server running
+				if (cli.flags.webOnly) {
+					console.log('Running in web-only mode. Press Ctrl+C to exit.');
+					// Keep process alive
+					process.on('SIGINT', () => {
+						console.log('\nShutting down web server...');
+						void webManager.stop().then(() => process.exit(0));
+					});
+				} else {
+					// Also render the CLI UI
+					render(<App flags={cli.flags as Flags} />);
+				}
+			} catch (error) {
+				console.error(
+					`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`,
+				);
+				process.exit(1);
+			}
+		})();
+	} else {
+		// Render the app
+		render(<App flags={cli.flags as Flags} />);
+	}
 }

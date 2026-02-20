@@ -1,6 +1,7 @@
 // Configuration type definitions
 import type {Playlist} from './youtube-music.types.ts';
 import type {Theme} from './theme.types.ts';
+import type {WebServerConfig} from './web.types.ts';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 export type DownloadFormat = 'mp3' | 'm4a';
@@ -47,4 +48,5 @@ export interface Config {
 	downloadsEnabled?: boolean;
 	downloadDirectory?: string;
 	downloadFormat?: DownloadFormat;
+	webServer?: WebServerConfig;
 }

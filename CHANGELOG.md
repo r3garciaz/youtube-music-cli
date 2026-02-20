@@ -1,3 +1,9 @@
+## [0.0.25](https://github.com/involvex/youtube-music-cli/compare/v0.0.24...v0.0.25) (2026-02-20)
+
+### Features
+
+- add Shift+Q/R shortcuts and improve help view navigation ([0d68ad0](https://github.com/involvex/youtube-music-cli/commit/0d68ad0f6aa2e379b164a4b35a452a592e2ae421))
+
 ## [0.0.24](https://github.com/involvex/youtube-music-cli/compare/v0.0.23...v0.0.24) (2026-02-20)
 
 ### Features

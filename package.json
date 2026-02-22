@@ -109,6 +109,9 @@
 		"node": ">=16"
 	},
 	"sponsors": "https://github.com/sponsors/involvex",
+	"overrides": {
+		"minimatch": "^10.2.1"
+	},
 	"trustedDependencies": [
 		"unrs-resolver"
 	]

@@ -57,9 +57,9 @@ export const KEYBINDINGS = {
 	PLAY_PAUSE: [' '],
 	NEXT: ['n', 'right'],
 	PREVIOUS: ['b', 'left'],
-	VOLUME_UP: ['='], // Only '=' without shift, since '+' requires shift and causes issues
-	VOLUME_DOWN: ['-'], // Only '-' without shift
-	VOLUME_FINE_UP: ['shift+='], // Fine-grained +1 step
+	VOLUME_UP: ['=', '+'], // '=' (no shift) or '+' (shift+=) both trigger volume up
+	VOLUME_DOWN: ['-'], // '-' triggers volume down
+	VOLUME_FINE_UP: ['ctrl+='], // Fine-grained +1 step (Ctrl+= to avoid conflict with '+')
 	VOLUME_FINE_DOWN: ['shift+-'], // Fine-grained -1 step
 	SHUFFLE: ['shift+s'],
 	REPEAT: ['r'],

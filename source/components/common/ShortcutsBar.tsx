@@ -83,7 +83,7 @@ export default function ShortcutsBar() {
 				>
 					{playerState.repeat === 'one' ? ICONS.REPEAT_ONE : ICONS.REPEAT_ALL}
 				</Text>{' '}
-				<Text color={theme.colors.dim}>{ICONS.VOLUME} [=/-]</Text>{' '}
+				<Text color={theme.colors.dim}>{ICONS.VOLUME} [+/-]</Text>{' '}
 				<Text color={theme.colors.primary}>{playerState.volume}%</Text>
 			</Text>
 		</Box>

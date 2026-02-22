@@ -68,7 +68,7 @@ export default function Help() {
 						<Text> | </Text>
 						<Text color={theme.colors.text}>b</Text> - Previous
 						<Text> | </Text>
-						<Text color={theme.colors.text}>=</Text> - Volume Up
+						<Text color={theme.colors.text}>+/=</Text> - Volume Up
 						<Text> | </Text>
 						<Text color={theme.colors.text}>-</Text> - Volume Down
 						<Text> | </Text>

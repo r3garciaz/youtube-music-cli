@@ -49,4 +49,5 @@ bun run build
 
 Write-Host "Release process complete for version $NEW_VERSION."
 Write-Host "Now Running: git push && git push --tags"
-git push && git push --tags
+git push
+git push --tags

@@ -93,7 +93,11 @@ function MainLayout() {
 
 	const goToImport = useCallback(() => {
 		// Don't navigate to import if we're in plugins view (i key is used for plugin install there)
-		if (navState.currentView !== VIEW.PLUGINS) {
+		// Don't navigate to import if we're in settings view (user navigates settings items with Enter)
+		if (
+			navState.currentView !== VIEW.PLUGINS &&
+			navState.currentView !== VIEW.SETTINGS
+		) {
 			dispatch({category: 'NAVIGATE', view: VIEW.IMPORT});
 		}
 	}, [dispatch, navState.currentView]);

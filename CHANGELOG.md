@@ -1,3 +1,9 @@
+## [0.0.31](https://github.com/involvex/youtube-music-cli/compare/v0.0.30...v0.0.31) (2026-02-22)
+
+### Bug Fixes
+
+- improve mpv process management and fix EOF/pause race condition ([b5e9786](https://github.com/involvex/youtube-music-cli/commit/b5e9786d99bdc0dc81cd32bef65ac5467c032231))
+
 ## [0.0.30](https://github.com/involvex/youtube-music-cli/compare/v0.0.29...v0.0.30) (2026-02-22)
 
 ## [0.0.29](https://github.com/involvex/youtube-music-cli/compare/v0.0.28...v0.0.29) (2026-02-22)

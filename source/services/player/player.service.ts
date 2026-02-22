@@ -473,6 +473,10 @@ class PlayerService {
 		};
 
 		if (this.mpvProcess) {
+			// Close piped stdio handles so Node has no open references that could
+			// prevent clean exit or send SIGHUP to the detached mpv process.
+			this.mpvProcess.stdout?.destroy();
+			this.mpvProcess.stderr?.destroy();
 			// Allow detached mpv process to survive after CLI exits.
 			this.mpvProcess.unref();
 		}
@@ -489,12 +493,18 @@ class PlayerService {
 	/**
 	 * Reattach to an existing mpv process via IPC
 	 */
-	async reattach(ipcPath: string): Promise<void> {
+	async reattach(
+		ipcPath: string,
+		options?: {trackId?: string; currentUrl?: string},
+	): Promise<void> {
 		logger.info('PlayerService', 'Reattaching to player', {ipcPath});
 
 		this.ipcPath = ipcPath;
 		await this.connectIpc();
 		this.isPlaying = true;
+
+		if (options?.trackId) this.currentTrackId = options.trackId;
+		if (options?.currentUrl) this.currentUrl = options.currentUrl;
 
 		logger.info('PlayerService', 'Successfully reattached to player');
 	}

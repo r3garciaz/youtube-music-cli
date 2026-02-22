@@ -321,6 +321,7 @@ function PlayerManager() {
 	}, [dispatch]);
 
 	// Register event handler for mpv IPC events
+	const eofTimestampRef = useRef(0);
 	useEffect(() => {
 		let lastProgressUpdate = 0;
 		const PROGRESS_THROTTLE_MS = 1000; // Update progress max once per second
@@ -339,17 +340,26 @@ function PlayerManager() {
 				}
 			}
 
+			if (event.eof) {
+				// Track ended — record timestamp so we can suppress mpv's spurious
+				// pause event that immediately follows EOF (idle state).
+				eofTimestampRef.current = Date.now();
+				next();
+			}
+
 			if (event.paused !== undefined) {
+				// mpv sends pause=true when a track ends and it enters idle mode.
+				// Suppress this for ~2s after EOF to prevent it from overwriting
+				// the isPlaying:true set by NEXT, which would block autoplay.
+				if (event.paused && Date.now() - eofTimestampRef.current < 2000) {
+					return;
+				}
+
 				if (event.paused) {
 					dispatch({category: 'PAUSE'});
 				} else {
 					dispatch({category: 'RESUME'});
 				}
-			}
-
-			if (event.eof) {
-				// Track ended, play next
-				next();
 			}
 		});
 	}, [playerService, dispatch, next]);
@@ -400,6 +410,38 @@ function PlayerManager() {
 		});
 
 		const loadAndPlayTrack = async () => {
+			// If a detached background session exists for this exact track, reattach
+			// to the still-running mpv process instead of spawning a new one.
+			const config = getConfigService();
+			const bgState = config.getBackgroundPlaybackState();
+			const trackUrl = `https://www.youtube.com/watch?v=${track.videoId}`;
+			if (
+				bgState.enabled &&
+				bgState.ipcPath &&
+				bgState.currentUrl === trackUrl
+			) {
+				try {
+					await playerService.reattach(bgState.ipcPath, {
+						trackId: track.videoId,
+						currentUrl: trackUrl,
+					});
+					config.clearBackgroundPlaybackState();
+					dispatch({category: 'SET_LOADING', loading: false});
+					logger.info('PlayerManager', 'Reattached to background mpv session');
+					return;
+				} catch (error) {
+					logger.warn(
+						'PlayerManager',
+						'Failed to reattach background session, starting fresh',
+						{
+							error: error instanceof Error ? error.message : String(error),
+						},
+					);
+					config.clearBackgroundPlaybackState();
+					// Fall through to normal play()
+				}
+			}
+
 			dispatch({category: 'SET_LOADING', loading: true});
 
 			const MAX_RETRIES = 3;
@@ -567,11 +609,10 @@ function PlayerManager() {
 		if (state.duration > 0 && state.progress >= state.duration) {
 			if (state.repeat === 'one') {
 				dispatch({category: 'SEEK', position: 0});
-			} else {
-				next();
 			}
+			// next() for regular track completion is handled by the eof IPC event
 		}
-	}, [state.progress, state.duration, state.repeat, next, dispatch]);
+	}, [state.progress, state.duration, state.repeat, dispatch]);
 
 	return null;
 }

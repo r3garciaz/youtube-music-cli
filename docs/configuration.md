@@ -114,6 +114,17 @@ Selects a preconfigured mpv equalizer stack (`flat`, `bass_boost`, `vocal`, `bri
 
 **Default:** `flat`
 
+## Search Filters (TUI)
+
+Use the Search view's filter shortcuts to narrow down results:
+
+- `Ctrl+A`: Set an artist name fragment to match against artist/track metadata.
+- `Ctrl+L`: Set an album filter that matches album or playlist titles.
+- `Ctrl+Y`: Supply a year or numeric fragment that will be matched against track/album/playlist names.
+- `Ctrl+D`: Cycle through duration buckets (`Any`, `short <3m`, `medium 3-5m`, `long >5m`).
+
+Filters are applied client-side and will immediately update the results list without re-running the API search.
+
 ### downloadsEnabled
 
 Enable or disable `Shift+D` downloads in the TUI.

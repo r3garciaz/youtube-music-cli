@@ -16,6 +16,9 @@ youtube-music-cli stores its configuration in `~/.youtube-music-cli/config.json`
 	"shuffle": false,
 	"repeat": "off",
 	"streamQuality": "high",
+	"gaplessPlayback": true,
+	"crossfadeDuration": 0,
+	"equalizerPreset": "flat",
 	"downloadsEnabled": false,
 	"downloadDirectory": "D:/Music/youtube-music-cli",
 	"downloadFormat": "mp3"
@@ -92,6 +95,24 @@ Audio streaming quality.
 | `high`   | ~256kbps+ | Best quality (default) |
 
 **Note:** Change via Settings menu (`,` key) in the TUI.
+
+### gaplessPlayback
+
+Enable or disable mpv's gapless audio flag. When turned on (default), mpv will avoid inserting silence between tracks when possible.
+
+**Default:** `true`
+
+### crossfadeDuration
+
+Sets the duration in seconds used for mpv's acrossfade filter between tracks. The Settings menu cycles through Off (0s), 1s, 2s, 3s, and 5s values.
+
+**Default:** `0`
+
+### equalizerPreset
+
+Selects a preconfigured mpv equalizer stack (`flat`, `bass_boost`, `vocal`, `bright`, `warm`). The menu cycles through the presets so you can tailor tonal balance.
+
+**Default:** `flat`
 
 ### downloadsEnabled
 

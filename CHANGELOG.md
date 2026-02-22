@@ -1,3 +1,9 @@
+## [0.0.29](https://github.com/involvex/youtube-music-cli/compare/v0.0.28...v0.0.29) (2026-02-22)
+
+### Bug Fixes
+
+- prevent import navigation when in settings view ([d805b5a](https://github.com/involvex/youtube-music-cli/commit/d805b5a182a2241ab5494565dcf6645da82da954))
+
 ## [0.0.28](https://github.com/involvex/youtube-music-cli/compare/v0.0.27...v0.0.28) (2026-02-22)
 
 ### Bug Fixes
